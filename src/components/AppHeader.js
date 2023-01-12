@@ -11,7 +11,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 
-import { logo } from 'src/assets/brand/logo'
+
 import addIcon  from 'src/assets/images/add.PNG'
 const AppHeader = () => {
   return (
@@ -24,7 +24,7 @@ const AppHeader = () => {
            <img src={addIcon} height={"40px"} />
         </CHeaderToggler>
         <CHeaderBrand className="mx-auto d-md-none" to="/">
-          <CIcon icon={logo} height={48} alt="Logo" />
+          {/* <CIcon icon={logo} height={48} alt="Logo" /> */}
         </CHeaderBrand>
         <CHeaderNav className="d-none d-md-flex d-justify-content-end me-auto">
 
