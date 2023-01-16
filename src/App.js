@@ -10,7 +10,7 @@ const loading = (
 
 // Containers
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
-
+const AddNewRecordLayout = React.lazy(() => import('./layout/AddNewRecordLayout'))
 
 class App extends Component {
   render() {
@@ -19,6 +19,7 @@ class App extends Component {
         <Suspense fallback={loading}>
           <Routes>
             <Route path="*" name="Home" element={<DefaultLayout />} />
+            <Route path="/add-record" name="Record Creation" element={<AddNewRecordLayout />} />
           </Routes>
         </Suspense>
       </HashRouter>

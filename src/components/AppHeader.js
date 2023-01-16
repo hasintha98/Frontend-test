@@ -9,17 +9,17 @@ import {
   CNavLink,
   CNavItem,
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-
+import { useNavigate } from 'react-router-dom';
 
 import addIcon  from 'src/assets/images/add.PNG'
 const AppHeader = () => {
+  const navigate = useNavigate();
   return (
     <CHeader position="sticky" className="mb-4 bg-header">
       <CContainer fluid>
         <CHeaderToggler
           className="ps-1"
-        
+          onClick={() => navigate('/add-record')}
         >
            <img src={addIcon} height={"40px"} />
         </CHeaderToggler>
