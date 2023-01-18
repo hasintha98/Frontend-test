@@ -1,4 +1,4 @@
-import { CButton, CCol, CFormCheck, CFormInput, CFormSelect, CInputGroup, CInputGroupText, CModal, CModalBody, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import { CButton, CCol, CFormCheck, CFormInput, CFormLabel, CFormSelect, CInputGroup, CInputGroupText, CModal, CModalBody, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useState } from 'react'
 import DateRangePicker from 'react-bootstrap-daterangepicker';
 // import 'bootstrap/dist/css/bootstrap.css';
@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
 const Production = () => {
     const [visible, setVisible] = useState(false)
+    const [deleteVisible, setDeleteVisible] = useState(false)
     const [startDate, setStartDate] = useState("")
     const [endDate, setEndDate] = useState("")
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ const Production = () => {
     function handleDateRange(event, picker) {
         setStartDate(moment(picker.startDate).format("DD/MM/YYYY"));
         setEndDate(moment(picker.endDate).format("DD/MM/YYYY"));
-      }
+    }
     return (
         <>
             <CRow>
@@ -38,26 +39,26 @@ const Production = () => {
                             </CInputGroup>
                         </CCol>
                         <CCol>
-                            <CButton 
-                            color="primary" 
-                            variant="outline" 
-                            onClick={() => setVisible(true)}
+                            <CButton
+                                color="primary"
+                                variant="outline"
+                                onClick={() => setVisible(true)}
                             ><span className="material-symbols-outlined pt-1" style={{ fontSize: "1em" }}>
-                                download
-                            </span>{' '}Export</CButton>
+                                    download
+                                </span>{' '}Export</CButton>
                         </CCol>
                     </CRow>
                 </CCol>
 
                 <CCol className="d-flex flex-row-reverse mb-5">
 
-                    <CButton 
-                    color="success" 
-                    variant="outline" 
-                    style={{ fontSize: "1em" }} 
-                    onClick={() => navigate('/production/add')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1em" }}>
-                        add
-                    </span>{' '}Add New</CButton>
+                    <CButton
+                        color="success"
+                        variant="outline"
+                        style={{ fontSize: "1em" }}
+                        onClick={() => navigate('/production/add')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1em" }}>
+                            add
+                        </span>{' '}Add New</CButton>
                 </CCol>
             </CRow>
             <CRow>
@@ -127,10 +128,10 @@ const Production = () => {
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{cursor: "pointer"}}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
                                     edit
                                 </span>
-                                <span className="material-symbols-outlined" style={{cursor: "pointer"}}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
                                     delete
                                 </span>
                             </CTableDataCell>
@@ -143,10 +144,10 @@ const Production = () => {
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{cursor: "pointer"}}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
                                     edit
                                 </span>
-                                <span className="material-symbols-outlined" style={{cursor: "pointer"}}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
                                     delete
                                 </span>
                             </CTableDataCell>
@@ -159,10 +160,10 @@ const Production = () => {
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{cursor: "pointer"}}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
                                     edit
                                 </span>
-                                <span className="material-symbols-outlined" style={{cursor: "pointer"}}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
                                     delete
                                 </span>
                             </CTableDataCell>
@@ -175,10 +176,10 @@ const Production = () => {
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{cursor: "pointer"}}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
                                     edit
                                 </span>
-                                <span className="material-symbols-outlined" style={{cursor: "pointer"}}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
                                     delete
                                 </span>
                             </CTableDataCell>
@@ -207,18 +208,22 @@ const Production = () => {
             </CRow>
             <CModal
                 style={{ marginTop: "30%", padding: "5%" }}
-                visible={visible}
-                onClose={() => setVisible(false)}>
+                visible={deleteVisible}
+                onClose={() => setDeleteVisible(false)}>
                 <CModalBody
                     style={{ textAlign: "center" }}>
                     <span
-                        style={{ fontSize: '5em', color: '#DEE5F9' }}
+                        style={{ fontSize: '5em', color: '#C55A11' }}
                         className="material-symbols-outlined">
-                        info
+                        warning
                     </span>
                     <p
                         className='fs-3'>
                         Are you sure?
+                    </p>
+                    <p
+                        className='fs-5'>
+                        Record <span style={{ color: 'red' }}>#9665</span> will delete from the system.
                     </p>
                     <p
                         style={{ fontSize: '0.8em' }}>
@@ -234,6 +239,46 @@ const Production = () => {
                         <CButton
                             color="danger"
                             style={{ backgroundColor: '#FF5B5B', color: '#fff' }}
+                            onClick={() => setDeleteVisible(false)}>
+                            Cancel
+                        </CButton>
+                    </div>
+                </CModalBody>
+            </CModal>
+            <CModal
+                style={{ marginTop: "30%", padding: "5%" }}
+                visible={visible}
+                onClose={() => setVisible(false)}>
+                <CModalBody
+                    >
+
+                    <p
+                        className='fs-3'>
+                        Export
+                    </p>
+                    <CRow className="mt-4">
+                        <CFormLabel htmlFor="period" className="col-sm-2 col-form-label">Period</CFormLabel>
+                        <CCol sm={10}>
+                            <CFormSelect id="period" aria-label="Default select example">
+                                <option>Last Week</option>
+                                <option value="1">Last Month</option>
+                                <option value="2">Last Year</option>
+
+                            </CFormSelect>
+                        </CCol>
+                    </CRow>
+                   
+                    <div
+                        className='d-grid gap-5 d-md-flex justify-content-md-around mt-5'>
+                        <CButton
+                            color="success"
+                            style={{color: '#fff', width: "100%" }}
+                            onClick={() => setVisible(false)}>
+                            Download
+                        </CButton>
+                        <CButton
+                            color="danger"
+                            style={{ backgroundColor: '#FF5B5B', color: '#fff', width: "100%" }}
                             onClick={() => setVisible(false)}>
                             Cancel
                         </CButton>
