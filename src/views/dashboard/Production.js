@@ -1,11 +1,16 @@
 import { CButton, CCol, CFormCheck, CFormInput, CFormLabel, CFormSelect, CInputGroup, CInputGroupText, CModal, CModalBody, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useState } from 'react'
-import DateRangePicker from 'react-bootstrap-daterangepicker';
+//import DateRangePicker from 'react-bootstrap-daterangepicker';
 // import 'bootstrap/dist/css/bootstrap.css';
 // you will also need the css that comes with bootstrap-daterangepicker
 import 'bootstrap-daterangepicker/daterangepicker.css';
+import 'rsuite/styles/index.less'; // or 'rsuite/dist/rsuite.min.css'
+import "rsuite/dist/rsuite.min.css"
 import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
+import { DateRangePicker } from 'rsuite';
+import { predefinedRanges } from 'src/data/preDefinedDateRanges';
+
 const Production = () => {
     const [visible, setVisible] = useState(false)
     const [deleteVisible, setDeleteVisible] = useState(false)
@@ -24,26 +29,28 @@ const Production = () => {
                     <CRow>
                         <CCol md={4}>
                             <CInputGroup >
-                                <CFormInput aria-label="Amount (to the nearest dollar)" placeholder='Search Production' />
-                                <CInputGroupText><span className="material-symbols-outlined">
+                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search Production' />
+                                <CInputGroupText className='default-border'><span className="material-symbols-outlined">
                                     search
                                 </span></CInputGroupText>
                             </CInputGroup>
                         </CCol>
                         <CCol md={4}>
-                            <CInputGroup >
-                                <CFormInput aria-label="Amount (to the nearest dollar)" placeholder='Search Type' />
-                                <CInputGroupText><span className="material-symbols-outlined">
+                            <CInputGroup>
+                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search Type' />
+                                <CInputGroupText className='default-border'><span className="material-symbols-outlined">
                                     search
                                 </span></CInputGroupText>
                             </CInputGroup>
                         </CCol>
                         <CCol>
                             <CButton
-                                color="primary"
+                                role="button"
+                                className='blue-button'
+                                // style={{color:"#2F5597"}}
                                 variant="outline"
                                 onClick={() => setVisible(true)}
-                            ><span className="material-symbols-outlined pt-1" style={{ fontSize: "1em" }}>
+                            ><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                                     download
                                 </span>{' '}Export</CButton>
                         </CCol>
@@ -54,9 +61,10 @@ const Production = () => {
 
                     <CButton
                         color="success"
+                        className='default-border'
                         variant="outline"
-                        style={{ fontSize: "1em" }}
-                        onClick={() => navigate('/production/add')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1em" }}>
+                        style={{ fontSize: "1em", fontWeight: '600' }}
+                        onClick={() => navigate('/production/add')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                             add
                         </span>{' '}Add New</CButton>
                 </CCol>
@@ -64,7 +72,7 @@ const Production = () => {
             <CRow>
 
                 <CCol md={3}>
-                    <CFormSelect aria-label="Default select example">
+                    <CFormSelect className='default-border' aria-label="Default select example">
                         <option>Bulk Action</option>
                         <option value="1">One</option>
                         <option value="2">Two</option>
@@ -72,33 +80,32 @@ const Production = () => {
                     </CFormSelect>
                 </CCol>
                 <CCol md={1}>
-                    <CButton style={{ width: "100%" }} color="primary" variant="outline" >Apply</CButton>
+                    <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Apply</CButton>
                 </CCol>
-                <CCol md={2} >
+                <CCol md={3} >
                     <DateRangePicker
-                        onApply={handleDateRange}
-                        initialSettings={{ startDate: '1/1/2014', endDate: '3/1/2014' }}
-                    >
-                        <CButton color="dark" variant="outline" style={{ fontSize: "1em", width: "100%" }} className="d-flex justify-content-between">{startDate ? startDate + " - " + endDate : 'Select range'}{' '}<span className="material-symbols-outlined pt-1" style={{ fontSize: "1em" }}>
-                            date_range
-                        </span>{' '}</CButton>
-                    </DateRangePicker>
+                        ranges={predefinedRanges}
+                        style={{ width: "100%" }}
+                        placeholder="Select Date Range"
+                        format="yyyy-MM-dd HH:mm:ss"
+                        defaultCalendarValue={[new Date('2023-01-01 00:00:00'), new Date()]}
+                    />
                 </CCol>
                 <CCol md={1}>
-                    <CButton style={{ width: "100%" }} color="primary" variant="outline" >Filter</CButton>
+                    <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Filter</CButton>
                 </CCol>
 
                 <CCol className="d-flex justify-content-end">
                     <CRow>
                         <CCol>
-                            <CButton style={{ width: "100%" }} color="primary" variant="outline" >Prev</CButton>
+                            <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Prev</CButton>
                         </CCol>
                         <CCol>
-                            <span className='mt-1'>1 of 5</span>
+                            <span style={{ color: "#2F5597", fontWeight: "bold" }} className='mt-1'>1 of 5</span>
                         </CCol>
                         <CCol>
 
-                            <CButton style={{ width: "100%" }} color="primary" variant="outline" >Next</CButton>
+                            <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Next</CButton>
                         </CCol>
 
 
@@ -128,7 +135,7 @@ const Production = () => {
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
                                     edit
                                 </span>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
@@ -144,7 +151,7 @@ const Production = () => {
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
                                     edit
                                 </span>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
@@ -160,7 +167,7 @@ const Production = () => {
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
                                     edit
                                 </span>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
@@ -176,7 +183,7 @@ const Production = () => {
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
                                     edit
                                 </span>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
@@ -189,17 +196,27 @@ const Production = () => {
                 </CTable>
             </CRow>
             <CRow>
-                <CCol className="d-flex justify-content-end">
+                <CCol md={1}></CCol>
+                <CCol className="d-flex justify-content-end" >
                     <CRow>
-                        <CCol>
-                            <CButton style={{ width: "100%" }} color="primary" variant="outline" >Prev</CButton>
+                    <CCol>
+                            
+                            <CFormSelect id="pageNo" aria-label="Default select example" style={{width: "100%"}}>
+                                <option>1</option>
+                                <option value="1">2</option>
+                                <option value="2">3</option>
+
+                            </CFormSelect>
                         </CCol>
                         <CCol>
-                            <span className='mt-1'>1 of 5</span>
+                            <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Prev</CButton>
+                        </CCol>
+                        <CCol>
+                            <span style={{ color: "#2F5597", fontWeight: "bold" }} className='mt-1'>1 of 5</span>
                         </CCol>
                         <CCol>
 
-                            <CButton style={{ width: "100%" }} color="primary" variant="outline" >Next</CButton>
+                            <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Next</CButton>
                         </CCol>
 
 
@@ -250,7 +267,7 @@ const Production = () => {
                 visible={visible}
                 onClose={() => setVisible(false)}>
                 <CModalBody
-                    >
+                >
 
                     <p
                         className='fs-3'>
@@ -267,12 +284,12 @@ const Production = () => {
                             </CFormSelect>
                         </CCol>
                     </CRow>
-                   
+
                     <div
                         className='d-grid gap-5 d-md-flex justify-content-md-around mt-5'>
                         <CButton
                             color="success"
-                            style={{color: '#fff', width: "100%" }}
+                            style={{ color: '#fff', width: "100%" }}
                             onClick={() => setVisible(false)}>
                             Download
                         </CButton>

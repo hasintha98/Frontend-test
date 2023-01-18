@@ -35,13 +35,13 @@ const AppSidebar = () => {
           <AppSidebarNav className="bg-sidebar-row" items={navigation} />
         </SimpleBar>
       </CSidebarNav>
-      <CSidebarNav>
+      {/* <CSidebarNav>
         <SimpleBar>
           <AppSidebarNav className="bg-sidebar-row" items={_midNav} />
           <br /><br /><br /><br />
           <AppSidebarNav className="bg-sidebar-row" items={_bottomNav} />
         </SimpleBar>
-      </CSidebarNav>
+      </CSidebarNav> */}
       
    
     </CSidebar>

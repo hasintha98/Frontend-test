@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { CNavItem } from '@coreui/react'
+import { CNavGroup, CNavItem } from '@coreui/react'
 
 const _nav = [
   {
@@ -20,12 +20,30 @@ const _nav = [
     </span>,
   },
   {
-    component: CNavItem,
+    component: CNavGroup,
     name: 'Inventory',
-    to: '/',
+    to: '/inventory',
     icon: <span className="material-symbols-outlined nav-icon" >
       manage_search
     </span>,
+     items: [
+      {
+        component: CNavItem,
+        name: 'PlyWood',
+        to: '/inventory?type=plywood',
+      },
+      {
+        component: CNavItem,
+        name: 'Row Materials',
+        to: '/inventory?type=raw',
+      },
+      {
+        component: CNavItem,
+        name: 'Other',
+        to: '/inventory?type=other',
+      },
+ 
+    ],
   },
   {
     component: CNavItem,
@@ -50,10 +68,7 @@ const _nav = [
     icon: <span className="material-symbols-outlined nav-icon">
       inventory
     </span>,
-  }
-
-]
-export const _midNav = [
+  },
   {
     component: CNavItem,
     name: 'Customers',
@@ -78,9 +93,6 @@ export const _midNav = [
     groups
     </span>,
   },
-]
-
-export const _bottomNav = [
   {
     component: CNavItem,
     name: 'Reports',
@@ -88,9 +100,10 @@ export const _bottomNav = [
     icon: <span className="material-symbols-outlined nav-icon">
     chart_data
     </span>,
-  },
-  
+  }
+
 ]
+
 
 
 export default _nav

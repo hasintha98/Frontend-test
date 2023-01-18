@@ -1,6 +1,8 @@
 // Here you can add other styles
 .bg-sidebar {
     background-color: #2C363B;
+    font-weight: bold;
+    color: #C9D0E0
 }
 
 .bg-sidebar-header-left {
@@ -8,7 +10,7 @@
 }
 
 .bg-sidebar-row {
-    font-weight: bold;
+    color: #C9D0E0
 }
 
 .bg-sidebar-row:hover {
@@ -70,4 +72,25 @@
 
 .dropdown-row :hover {
     background-color: #2C363B;
+}
+
+
+.default-border {
+    border: 2px solid;
+}
+
+.blue-button {
+    color: #2F5597;
+    border-color: #2F5597;
+    border: 2px solid;
+    font-weight: bold;
+}
+
+
+
+.blue-button:hover {
+    background-color: #2F5597;
+    color: white;
+    border-color: #2F5597;
+    
 }
