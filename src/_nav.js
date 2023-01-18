@@ -14,7 +14,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Production',
-    to: '/',
+    to: '/production',
     icon: <span className="material-symbols-outlined nav-icon">
       factory
     </span>,
