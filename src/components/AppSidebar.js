@@ -31,7 +31,7 @@ const AppSidebar = () => {
         {/* <CIcon className="sidebar-brand-narrow" icon={sygnet} height={35} /> */}
       </CSidebarBrand>
       <CSidebarNav>
-        <SimpleBar>
+        <SimpleBar >
           <AppSidebarNav className="bg-sidebar-row" items={navigation} />
         </SimpleBar>
       </CSidebarNav>

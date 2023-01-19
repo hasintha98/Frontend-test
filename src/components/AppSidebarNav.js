@@ -1,11 +1,13 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 import { CBadge } from '@coreui/react'
+import PinRequiredModel from './Models/PinRequiredModel'
 
 export const AppSidebarNav = ({ items }) => {
   const location = useLocation()
+  const [visible, setVisible] = useState(false)
   const navLink = (name, icon, badge) => {
     return (
       <>
@@ -16,6 +18,8 @@ export const AppSidebarNav = ({ items }) => {
             {badge.text}
           </CBadge>
         )}
+        
+        <PinRequiredModel visible={visible} onClose={(val) => setVisible(val)} />
       </>
     )
   }
@@ -23,8 +27,9 @@ export const AppSidebarNav = ({ items }) => {
   const navItem = (item, index) => {
     const { component, name, badge, icon, ...rest } = item
     const Component = component
+ 
     return (
-      <Component
+       <Component
       className="bg-sidebar-row" 
         {...(rest.to &&
           !rest.items && {
@@ -32,8 +37,10 @@ export const AppSidebarNav = ({ items }) => {
           })}
         key={index}
         {...rest}
+      
       >
         {navLink(name, icon, badge)}
+        
       </Component>
     )
   }
@@ -43,6 +50,7 @@ export const AppSidebarNav = ({ items }) => {
     return (
       <Component
         idx={String(index)}
+        className="bg-sidebar-group-item" 
         key={index}
         toggler={navLink(name, icon)}
         visible={location.pathname.startsWith(to)}

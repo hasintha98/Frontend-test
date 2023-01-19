@@ -10,7 +10,12 @@
 }
 
 .bg-sidebar-row {
-    color: #C9D0E0
+    color: #C9D0E0;
+}
+
+.bg-sidebar-group-item {
+    color: #C9D0E0;
+    font-weight: 'lighter';
 }
 
 .bg-sidebar-row:hover {
@@ -77,6 +82,16 @@
 
 .default-border {
     border: 2px solid;
+}
+
+.model-blue-button {
+    border-color: #2F5597;
+    background-color: #2F5597;
+}
+
+.model-blue-button:hover {
+    background-color: #2F5597;  
+    opacity: 25;
 }
 
 .blue-button {

@@ -1,10 +1,14 @@
 import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CFormCheck, CFormInput, CFormLabel, CFormSelect, CInputGroup, CInputGroupText, CModal, CModalBody, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
+import ExportModel from 'src/components/Models/ExportModel';
+import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
+import StockUpdateModel from 'src/components/Models/StockUpdateModel';
 
 const Inventory = () => {
   const [visible, setVisible] = useState(false)
   const [deleteVisible, setDeleteVisible] = useState(false)
+  const [updateVisible, setUpdateVisible] = useState(false)
   const search = useLocation().search
   const type = new URLSearchParams(search).get('type')
   const [selectedMenu, setSelectedMenu] = useState(type)
@@ -36,12 +40,20 @@ const Inventory = () => {
         </CCol>
         <CCol className='d-flex justify-content-end gap-4'>
           <CCol md={5}>
+            {selectedMenu == 'plywood' ? <CInputGroup >
+              <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Type' />
+              <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Size' />
+              <CInputGroupText className='default-border' style={{ cursor: 'pointer' }}>
+                <span className="material-symbols-outlined">
+                  search
+                </span></CInputGroupText>
+            </CInputGroup> :
             <CInputGroup >
-              <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search Production' />
+              <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search' />
               <CInputGroupText className='default-border'><span className="material-symbols-outlined">
                 search
               </span></CInputGroupText>
-            </CInputGroup>
+            </CInputGroup> }
           </CCol>
           <CCol >
             <CButton
@@ -126,7 +138,7 @@ const Inventory = () => {
         <CTable striped>
           <CTableHead>
             <CTableRow color="info">
-              <CTableHeaderCell scope="col" className='text-center'><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
+              <CTableHeaderCell scope="col" className='text-center' width={5}><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
               <CTableHeaderCell scope="col" className='text-center'>SKU</CTableHeaderCell>
               <CTableHeaderCell scope="col" className='text-center'>Production</CTableHeaderCell>
               <CTableHeaderCell scope="col" className='text-center'>Type</CTableHeaderCell>
@@ -137,13 +149,16 @@ const Inventory = () => {
           </CTableHead>
           <CTableBody>
             <CTableRow>
-              <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+              <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
               <CTableHeaderCell scope="row" className='text-center'>#PW452</CTableHeaderCell>
               <CTableDataCell className='text-center'>9mm</CTableDataCell>
               <CTableDataCell className='text-center'>OK-G1</CTableDataCell>
               <CTableDataCell className='text-center'>12</CTableDataCell>
               <CTableDataCell className='text-center'>Low Stock</CTableDataCell>
               <CTableDataCell className='d-flex justify-content-around'>
+                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setUpdateVisible(true)}>
+                  upgrade
+                </span>
                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
                   edit
                 </span>
@@ -153,13 +168,16 @@ const Inventory = () => {
               </CTableDataCell>
             </CTableRow>
             <CTableRow>
-              <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+              <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
               <CTableHeaderCell scope="row" className='text-center'>#PW452</CTableHeaderCell>
               <CTableDataCell className='text-center'>9mm</CTableDataCell>
               <CTableDataCell className='text-center'>OK-G1</CTableDataCell>
               <CTableDataCell className='text-center'>12</CTableDataCell>
               <CTableDataCell className='text-center'>Low Stock</CTableDataCell>
               <CTableDataCell className='d-flex justify-content-around'>
+                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setUpdateVisible(true)}>
+                  upgrade
+                </span>
                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
                   edit
                 </span>
@@ -169,13 +187,16 @@ const Inventory = () => {
               </CTableDataCell>
             </CTableRow>
             <CTableRow>
-              <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+              <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
               <CTableHeaderCell scope="row" className='text-center'>#PW452</CTableHeaderCell>
               <CTableDataCell className='text-center'>9mm</CTableDataCell>
               <CTableDataCell className='text-center'>OK-G1</CTableDataCell>
               <CTableDataCell className='text-center'>12</CTableDataCell>
               <CTableDataCell className='text-center'>Low Stock</CTableDataCell>
               <CTableDataCell className='d-flex justify-content-around'>
+                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setUpdateVisible(true)}>
+                  upgrade
+                </span>
                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
                   edit
                 </span>
@@ -185,13 +206,16 @@ const Inventory = () => {
               </CTableDataCell>
             </CTableRow>
             <CTableRow>
-              <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+              <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
               <CTableHeaderCell scope="row" className='text-center'>#PW452</CTableHeaderCell>
               <CTableDataCell className='text-center'>9mm</CTableDataCell>
               <CTableDataCell className='text-center'>OK-G1</CTableDataCell>
               <CTableDataCell className='text-center'>12</CTableDataCell>
               <CTableDataCell className='text-center'>Low Stock</CTableDataCell>
               <CTableDataCell className='d-flex justify-content-around'>
+                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setUpdateVisible(true)}>
+                  upgrade
+                </span>
                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
                   edit
                 </span>
@@ -211,12 +235,15 @@ const Inventory = () => {
           <CRow>
             <CCol>
 
-              <CFormSelect id="pageNo" aria-label="Default select example" style={{ width: "100%" }}>
-                <option>1</option>
-                <option value="1">2</option>
-                <option value="2">3</option>
+              <CDropdown variant="btn-group" direction="dropup" >
+                <CDropdownToggle style={{ backgroundColor: '#fff' }} color="secondary">1</CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem href="#">2</CDropdownItem>
+                  <CDropdownItem href="#">3</CDropdownItem>
+                  <CDropdownItem href="#">4</CDropdownItem>
 
-              </CFormSelect>
+                </CDropdownMenu>
+              </CDropdown>
             </CCol>
             <CCol>
               <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Prev</CButton>
@@ -233,86 +260,9 @@ const Inventory = () => {
           </CRow>
         </CCol>
       </CRow>
-      <CModal
-        style={{ marginTop: "30%", padding: "5%" }}
-        visible={deleteVisible}
-        onClose={() => setDeleteVisible(false)}>
-        <CModalBody
-          style={{ textAlign: "center" }}>
-          <span
-            style={{ fontSize: '5em', color: '#C55A11' }}
-            className="material-symbols-outlined">
-            warning
-          </span>
-          <p
-            className='fs-3'>
-            Are you sure?
-          </p>
-          <p
-            className='fs-5'>
-            Record <span style={{ color: 'red' }}>#9665</span> will delete from the system.
-          </p>
-          <p
-            style={{ fontSize: '0.8em' }}>
-            To continue please enter admin pin code and press Enter key
-          </p>
-          <div
-            className='d-grid gap-2 d-md-flex justify-content-md-center'>
-            <CFormInput
-              style={{ backgroundColor: '#F2F2F2' }}
-              type="number"
-              autoFocus
-              id="qty" />
-            <CButton
-              color="danger"
-              style={{ backgroundColor: '#FF5B5B', color: '#fff' }}
-              onClick={() => setDeleteVisible(false)}>
-              Cancel
-            </CButton>
-          </div>
-        </CModalBody>
-      </CModal>
-
-      <CModal
-        style={{ marginTop: "30%", padding: "5%" }}
-        visible={visible}
-        onClose={() => setVisible(false)}>
-        <CModalBody
-        >
-
-          <p
-            className='fs-3'>
-            Export
-          </p>
-          <CRow className="mt-4">
-            <CFormLabel htmlFor="period" className="col-sm-2 col-form-label">Period</CFormLabel>
-            <CCol sm={10}>
-              <CFormSelect id="period" aria-label="Default select example">
-                <option>Last Week</option>
-                <option value="1">Last Month</option>
-                <option value="2">Last Year</option>
-
-              </CFormSelect>
-            </CCol>
-          </CRow>
-
-          <div
-            className='d-grid gap-5 d-md-flex justify-content-md-around mt-5'>
-            <CButton
-              color="success"
-              style={{ color: '#fff', width: "100%" }}
-              onClick={() => setVisible(false)}>
-              Download
-            </CButton>
-            <CButton
-              color="danger"
-              style={{ backgroundColor: '#FF5B5B', color: '#fff', width: "100%" }}
-              onClick={() => setVisible(false)}>
-              Cancel
-            </CButton>
-          </div>
-        </CModalBody>
-      </CModal>
+      <RecordDeleteModel visible={deleteVisible} onClose={(val) => setDeleteVisible(val)} recordId={"#5765"} />
+      <StockUpdateModel visible={updateVisible} onClose={(val) => setUpdateVisible(val)} />
+      <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
     </>
   )
 }

@@ -47,8 +47,16 @@ const _nav = [
   },
   {
     component: CNavItem,
+    name: 'Raw Records',
+    to: '/raw',
+    icon: <span className="material-symbols-outlined nav-icon">
+      info
+    </span>,
+  },
+  {
+    component: CNavItem,
     name: 'Sales Orders',
-    to: '/',
+    to: '/sales',
     icon: <span className="material-symbols-outlined nav-icon">
       trolley
     </span>,
@@ -72,7 +80,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Customers',
-    to: '/',
+    to: '/customers',
     icon: <span className="material-symbols-outlined nav-icon">
     reviews
     </span>,

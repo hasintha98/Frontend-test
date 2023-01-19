@@ -1,72 +1,56 @@
-import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CFormCheck, CFormInput, CFormLabel, CFormSelect, CInputGroup, CInputGroupText, CModal, CModalBody, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CFormInput, CFormSelect, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useState } from 'react'
-//import DateRangePicker from 'react-bootstrap-daterangepicker';
-// import 'bootstrap/dist/css/bootstrap.css';
-// you will also need the css that comes with bootstrap-daterangepicker
-import 'bootstrap-daterangepicker/daterangepicker.css';
-import 'rsuite/styles/index.less'; // or 'rsuite/dist/rsuite.min.css'
-import "rsuite/dist/rsuite.min.css"
 import { useNavigate } from 'react-router-dom';
-import moment from 'moment';
 import { DateRangePicker } from 'rsuite';
-import { predefinedRanges } from 'src/data/preDefinedDateRanges';
 import ExportModel from 'src/components/Models/ExportModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
+import { predefinedRanges } from 'src/data/preDefinedDateRanges';
 
-const Production = () => {
-    const [visible, setVisible] = useState(false)
-    const [deleteVisible, setDeleteVisible] = useState(false)
-    const [startDate, setStartDate] = useState("")
-    const [endDate, setEndDate] = useState("")
+const RawRecords = () => {
     const navigate = useNavigate();
-
-    function handleDateRange(event, picker) {
-        setStartDate(moment(picker.startDate).format("DD/MM/YYYY"));
-        setEndDate(moment(picker.endDate).format("DD/MM/YYYY"));
-    }
+    const [deleteVisible, setDeleteVisible] = useState(false)
+    const [visible, setVisible] = useState(false)
     return (
         <>
             <CRow>
-                <CCol>
-                    <CRow>
-                        <CCol md={6}>
-                            <CInputGroup >
-                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Production' />
-                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Type' />
-                                <CInputGroupText className='default-border' style={{ cursor: 'pointer' }}>
-                                    <span className="material-symbols-outlined">
-                                        search
-                                    </span></CInputGroupText>
-                            </CInputGroup>
-                        </CCol>
+                <CCol
+                    md={8}>
 
-                        <CCol>
-                            <CButton
-                                role="button"
-                                className='blue-button'
-                                // style={{color:"#2F5597"}}
-                                variant="outline"
-                                onClick={() => setVisible(true)}
-                            ><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
-                                    download
-                                </span>{' '}Export</CButton>
-                        </CCol>
-                    </CRow>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Records</span>
                 </CCol>
-
-                <CCol className="d-flex flex-row-reverse mb-5">
-
-                    <CButton
-                        color="success"
-                        className='default-border'
-                        variant="outline"
-                        style={{ fontSize: "1em", fontWeight: '600' }}
-                        onClick={() => navigate('/production/add')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
-                            add
-                        </span>{' '}Add New</CButton>
+                <CCol className='d-flex justify-content-end gap-4'>
+                    <CCol md={5}>
+                        <CInputGroup >
+                            <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search here' />
+                            <CInputGroupText className='default-border'><span className="material-symbols-outlined">
+                                search
+                            </span></CInputGroupText>
+                        </CInputGroup>
+                    </CCol>
+                    <CCol >
+                        <CButton
+                            role="button"
+                            className='blue-button'
+                            style={{ width: "100%" }}
+                            variant="outline"
+                            onClick={() => setVisible(true)}
+                        ><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+                                download
+                            </span>{' '}Export</CButton>
+                    </CCol>
+                    <CCol>
+                        <CButton
+                            color="success"
+                            className='default-border'
+                            variant="outline"
+                            style={{ fontSize: "1em", fontWeight: '600', width: "100%" }}
+                            onClick={() => navigate('/sales/new')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+                                description
+                            </span>{' '}Summery</CButton>
+                    </CCol>
                 </CCol>
             </CRow>
-            <CRow>
+            <CRow className='mt-4'>
 
                 <CCol md={3}>
                     <CFormSelect className='default-border' aria-label="Default select example">
@@ -109,12 +93,10 @@ const Production = () => {
                     </CRow>
                 </CCol>
             </CRow>
-
             <CRow className='p-2 mt-4'>
                 <CTable striped>
                     <CTableHead>
                         <CTableRow color="info">
-                            <CTableHeaderCell scope="col"><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
                             <CTableHeaderCell scope="col">Id</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Date</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Production</CTableHeaderCell>
@@ -125,7 +107,7 @@ const Production = () => {
                     </CTableHead>
                     <CTableBody>
                         <CTableRow>
-                            <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+
                             <CTableHeaderCell scope="row">Default</CTableHeaderCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
@@ -141,7 +123,7 @@ const Production = () => {
                             </CTableDataCell>
                         </CTableRow>
                         <CTableRow >
-                            <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                       
                             <CTableHeaderCell scope="row">Default</CTableHeaderCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
@@ -157,7 +139,7 @@ const Production = () => {
                             </CTableDataCell>
                         </CTableRow>
                         <CTableRow >
-                            <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                         
                             <CTableHeaderCell scope="row">Default</CTableHeaderCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
@@ -173,7 +155,7 @@ const Production = () => {
                             </CTableDataCell>
                         </CTableRow>
                         <CTableRow >
-                            <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                          
                             <CTableHeaderCell scope="row">Default</CTableHeaderCell>
                             <CTableDataCell>Cell</CTableDataCell>
                             <CTableDataCell>Cell</CTableDataCell>
@@ -229,4 +211,4 @@ const Production = () => {
     )
 }
 
-export default Production
+export default RawRecords
