@@ -54,20 +54,35 @@ const _nav = [
     </span>,
   },
   {
-    component: CNavItem,
+    component: CNavGroup,
     name: 'Sales Orders',
     to: '/sales',
     icon: <span className="material-symbols-outlined nav-icon">
       trolley
     </span>,
-  },
-  {
-    component: CNavItem,
-    name: 'Invoices',
-    to: '/',
-    icon: <span className="material-symbols-outlined nav-icon">
-      export_notes
-    </span>,
+     items: [
+      {
+        component: CNavItem,
+        name: 'Orders',
+        to: '/sales',
+      },
+      {
+        component: CNavItem,
+        name: 'Invoices',
+        to: '/invoices',
+      },
+      {
+        component: CNavItem,
+        name: 'Shipments',
+        to: '/shipments',
+      },
+      {
+        component: CNavItem,
+        name: 'Credit Memos',
+        to: '/memos',
+      },
+ 
+    ],
   },
   {
     component: CNavItem,

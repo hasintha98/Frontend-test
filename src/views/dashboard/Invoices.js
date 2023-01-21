@@ -9,7 +9,7 @@ import 'rsuite/styles/index.less'; // or 'rsuite/dist/rsuite.min.css'
 import "rsuite/dist/rsuite.min.css"
 import SendEmailModel from 'src/components/Models/SendEmailModel'
 
-const SalesOrder = () => {
+const Invoices = () => {
     const [visible, setVisible] = useState(false)
     const [deleteVisible, setDeleteVisible] = useState(false)
 
@@ -19,9 +19,10 @@ const SalesOrder = () => {
             <CRow>
                 <CCol>
 
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Sales Orders</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Invoices</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
+                    <CCol></CCol>
                     <CCol md={5}>
                         <CInputGroup >
                             <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search here' />
@@ -41,16 +42,7 @@ const SalesOrder = () => {
                                 download
                             </span>{' '}Export</CButton>
                     </CCol>
-                    <CCol>
-                        <CButton
-                            color="success"
-                            className='default-border'
-                            variant="outline"
-                            style={{ fontSize: "1em", fontWeight: '600', width: "100%" }}
-                            onClick={() => navigate('/sales/new')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
-                                add
-                            </span>{' '}New</CButton>
-                    </CCol>
+
                 </CCol>
             </CRow>
 
@@ -67,28 +59,17 @@ const SalesOrder = () => {
                     <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Apply</CButton>
                 </CCol>
                 <CCol md={2}>
-                    <DateRangePicker
-                        ranges={predefinedRanges}
+                    <CFormInput
+
                         style={{ width: "100%" }}
-                        placeholder="Date"
-                        format="yyyy-MM-dd HH:mm:ss"
-                        defaultCalendarValue={[new Date('2023-01-01 00:00:00'), new Date()]}
+                        placeholder="Order Id"
+
                     />
                 </CCol>
                 <CCol md={1}>
                     <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Filter</CButton>
                 </CCol>
-                <CCol md={2}>
-                    <CFormSelect className='default-border' aria-label="Default select example">
-                        <option>Order Status</option>
-                        <option value="1">INVOICED</option>
-                        <option value="2">COMPLETED</option>
-                        <option value="3" disabled>PENDING</option>
-                    </CFormSelect>
-                </CCol>
-                <CCol md={1}>
-                    <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Filter</CButton>
-                </CCol>
+
 
                 <CCol className="d-flex justify-content-end">
                     <CRow>
@@ -115,8 +96,10 @@ const SalesOrder = () => {
                     <CTableHead>
                         <CTableRow color="info">
                             <CTableHeaderCell scope="col" className='text-center' width={5}><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Date</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Order #</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Invoice</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Invoice Date</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Order</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Order Date</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Customer Name</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Order Status</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Amount</CTableHeaderCell>
@@ -126,65 +109,61 @@ const SalesOrder = () => {
                     <CTableBody>
                         <CTableRow>
                             <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                            <CTableHeaderCell scope="row" className='text-center'>15 Oct 2022</CTableHeaderCell>
-                            <CTableDataCell className='text-center'>#SO452</CTableDataCell>
+                            <CTableHeaderCell scope="row" className='text-center'>#IN451-1</CTableHeaderCell>
+                            <CTableDataCell className='text-center'>15 Oct 2022</CTableDataCell>
+                            <CTableDataCell className='text-center'>#SO451</CTableDataCell>
+                            <CTableDataCell className='text-center'>24 Oct 2022</CTableDataCell>
                             <CTableDataCell className='text-center'>John Doe</CTableDataCell>
-                            <CTableDataCell className='text-center'>INVOICED</CTableDataCell>
+                            <CTableDataCell className='text-center'>Payment Pending</CTableDataCell>
                             <CTableDataCell className='text-center'>LKR 201,500</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
-                                    edit
-                                </span>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
-                                    delete
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/invoices/view?inv=IN451-1')}>
+                                    visibility
                                 </span>
                             </CTableDataCell>
                         </CTableRow>
                         <CTableRow>
                             <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                            <CTableHeaderCell scope="row" className='text-center'>15 Oct 2022</CTableHeaderCell>
-                            <CTableDataCell className='text-center'>#SO452</CTableDataCell>
+                            <CTableHeaderCell scope="row" className='text-center'>#IN451-1</CTableHeaderCell>
+                            <CTableDataCell className='text-center'>15 Oct 2022</CTableDataCell>
+                            <CTableDataCell className='text-center'>#SO451</CTableDataCell>
+                            <CTableDataCell className='text-center'>24 Oct 2022</CTableDataCell>
                             <CTableDataCell className='text-center'>John Doe</CTableDataCell>
-                            <CTableDataCell className='text-center'>COMPLETED</CTableDataCell>
+                            <CTableDataCell className='text-center'>Payment Pending</CTableDataCell>
                             <CTableDataCell className='text-center'>LKR 201,500</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
-                                    edit
-                                </span>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
-                                    delete
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
+                                    visibility
                                 </span>
                             </CTableDataCell>
                         </CTableRow>
                         <CTableRow>
                             <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                            <CTableHeaderCell scope="row" className='text-center'>15 Oct 2022</CTableHeaderCell>
-                            <CTableDataCell className='text-center'>#SO452</CTableDataCell>
+                            <CTableHeaderCell scope="row" className='text-center'>#IN451-1</CTableHeaderCell>
+                            <CTableDataCell className='text-center'>15 Oct 2022</CTableDataCell>
+                            <CTableDataCell className='text-center'>#SO451</CTableDataCell>
+                            <CTableDataCell className='text-center'>24 Oct 2022</CTableDataCell>
                             <CTableDataCell className='text-center'>John Doe</CTableDataCell>
-                            <CTableDataCell className='text-center'>COMPLETED</CTableDataCell>
+                            <CTableDataCell className='text-center'>Payment Pending</CTableDataCell>
                             <CTableDataCell className='text-center'>LKR 201,500</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
-                                    edit
-                                </span>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
-                                    delete
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
+                                    visibility
                                 </span>
                             </CTableDataCell>
                         </CTableRow>
                         <CTableRow>
                             <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                            <CTableHeaderCell scope="row" className='text-center'>15 Oct 2022</CTableHeaderCell>
-                            <CTableDataCell className='text-center'>#SO452</CTableDataCell>
+                            <CTableHeaderCell scope="row" className='text-center'>#IN451-1</CTableHeaderCell>
+                            <CTableDataCell className='text-center'>15 Oct 2022</CTableDataCell>
+                            <CTableDataCell className='text-center'>#SO451</CTableDataCell>
+                            <CTableDataCell className='text-center'>24 Oct 2022</CTableDataCell>
                             <CTableDataCell className='text-center'>John Doe</CTableDataCell>
-                            <CTableDataCell className='text-center'>PENDING</CTableDataCell>
+                            <CTableDataCell className='text-center'>Paid</CTableDataCell>
                             <CTableDataCell className='text-center'>LKR 201,500</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
-                                    edit
-                                </span>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
-                                    delete
+                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
+                                    visibility
                                 </span>
                             </CTableDataCell>
                         </CTableRow>
@@ -231,4 +210,4 @@ const SalesOrder = () => {
     )
 }
 
-export default SalesOrder
+export default Invoices

@@ -5,9 +5,21 @@ const Production = React.lazy(() => import('./views/dashboard/Production'))
 const AddProduction = React.lazy(() => import('./views/dashboard/AddProduction'))
 const EditProduction = React.lazy(() => import('./views/dashboard/EditProduction'))
 const Inventory = React.lazy(() => import('./views/dashboard/Inventory'))
+const AddPlywoodType = React.lazy(() => import('./views/dashboard/AddPlywoodType'))
 const RawRecords = React.lazy(() => import('./views/dashboard/RawRecords'))
 const SalesOrder = React.lazy(() => import('./views/dashboard/SalesOrder'))
 const NewSalesOrder = React.lazy(() => import('./views/dashboard/NewSalesOrder'))
+const ViewSalesOrder = React.lazy(() => import('./views/dashboard/ViewSalesOrder'))
+const Invoices = React.lazy(() => import('./views/dashboard/Invoices'))
+const NewInvoice = React.lazy(() => import('./views/dashboard/NewInvoice'))
+const ViewInvoice = React.lazy(() => import('./views/dashboard/ViewInvoice'))
+const Shipments = React.lazy(() => import('./views/dashboard/Shipments'))
+const NewShipment = React.lazy(() => import('./views/dashboard/NewShipment'))
+const ViewShipment = React.lazy(() => import('./views/dashboard/ViewShipment'))
+const CreditMemos = React.lazy(() => import('./views/dashboard/CreditMemos'))
+const NewMemo = React.lazy(() => import('./views/dashboard/NewMemo'))
+const ViewMemo = React.lazy(() => import('./views/dashboard/ViewMemo'))
+const ActivityLogs = React.lazy(() => import('./views/dashboard/ActivityLogs'))
 const Customers = React.lazy(() => import('./views/dashboard/Customers'))
 
 const routes = [
@@ -17,9 +29,21 @@ const routes = [
   { path: '/production/add', name: 'Production-Add', element: AddProduction },
   { path: '/production/edit', name: 'Production-edit', element: EditProduction },
   { path: '/inventory', name: 'Inventory', element: Inventory },
+  { path: '/inventory/add-plywood', name: 'Inventory-Plywoord', element: AddPlywoodType },
   { path: '/raw', name: 'Raw-Records', element: RawRecords },
   { path: '/sales', name: 'Sales-Order', element: SalesOrder },
   { path: '/sales/new', name: 'Sales-Order-new', element: NewSalesOrder },
+  { path: '/sales/view', name: 'Sales-Order-view', element: ViewSalesOrder },
+  { path: '/invoices', name: 'Invoices', element: Invoices },
+  { path: '/invoices/new', name: 'Invoices-new', element: NewInvoice },
+  { path: '/invoices/view', name: 'Invoices-view', element: ViewInvoice },
+  { path: '/shipments', name: 'Shipments', element: Shipments },
+  { path: '/shipments/new', name: 'Shipments-new', element: NewShipment },
+  { path: '/shipments/view', name: 'Shipments-view', element: ViewShipment },
+  { path: '/memos', name: 'Memos', element: CreditMemos },
+  { path: '/memos/new', name: 'Memos-new', element: NewMemo },
+  { path: '/memos/view', name: 'Memos-view', element: ViewMemo },
+  { path: '/logs', name: 'Activity-logs', element: ActivityLogs },
   { path: '/customers', name: 'Customers', element: Customers }
 ]
 

@@ -72,7 +72,7 @@ const Inventory = () => {
               className='default-border'
               variant="outline"
               style={{ fontSize: "1em", fontWeight: '600', width: "100%" }}
-              onClick={() => navigate('/production/add')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+              onClick={() => navigate('/inventory/add-plywood')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                 add
               </span>{' '}Update</CButton>
           </CCol>
