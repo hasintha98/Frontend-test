@@ -3,14 +3,16 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { DateRangePicker } from 'rsuite';
 import ExportModel from 'src/components/Models/ExportModel';
+import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
 import { predefinedRanges } from 'src/data/preDefinedDateRanges';
 
 const RawRecords = () => {
     const navigate = useNavigate();
+    const [visiblePinModel, setVisiblePinModel] = useState(true)
     const [deleteVisible, setDeleteVisible] = useState(false)
     const [visible, setVisible] = useState(false)
-    return (
+    return visiblePinModel ?  <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
         <>
             <CRow>
                 <CCol

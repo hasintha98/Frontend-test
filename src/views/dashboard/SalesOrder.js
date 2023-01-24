@@ -8,13 +8,15 @@ import { predefinedRanges } from 'src/data/preDefinedDateRanges'
 import 'rsuite/styles/index.less'; // or 'rsuite/dist/rsuite.min.css'
 import "rsuite/dist/rsuite.min.css"
 import SendEmailModel from 'src/components/Models/SendEmailModel'
+import PinRequiredModel from 'src/components/Models/PinRequiredModel'
 
 const SalesOrder = () => {
     const [visible, setVisible] = useState(false)
     const [deleteVisible, setDeleteVisible] = useState(false)
+    const [visiblePinModel, setVisiblePinModel] = useState(true)
 
     const navigate = useNavigate();
-    return (
+    return visiblePinModel ?  <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> :  (
         <>
             <CRow>
                 <CCol>

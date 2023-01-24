@@ -12,10 +12,12 @@ import { DateRangePicker } from 'rsuite';
 import { predefinedRanges } from 'src/data/preDefinedDateRanges';
 import ExportModel from 'src/components/Models/ExportModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
+import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 
 const Production = () => {
     const [visible, setVisible] = useState(false)
     const [deleteVisible, setDeleteVisible] = useState(false)
+    const [visiblePinModel, setVisiblePinModel] = useState(true)
     const [startDate, setStartDate] = useState("")
     const [endDate, setEndDate] = useState("")
     const navigate = useNavigate();
@@ -24,7 +26,7 @@ const Production = () => {
         setStartDate(moment(picker.startDate).format("DD/MM/YYYY"));
         setEndDate(moment(picker.endDate).format("DD/MM/YYYY"));
     }
-    return (
+    return visiblePinModel ?  <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
         <>
             <CRow>
                 <CCol>
@@ -225,6 +227,7 @@ const Production = () => {
             </CRow>
             <RecordDeleteModel visible={deleteVisible} onClose={(val) => setDeleteVisible(val)} recordId={"#5765"} />
             <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
+           
         </>
     )
 }

@@ -36,22 +36,22 @@ const AppHeader = () => {
             </CNavLink>
           </CNavItem>
           <CNavItem>
-            <CNavLink href="#">
-              <span className="material-symbols-sharp">
+            <CNavLink >
+              <span className="material-symbols-sharp" onClick={() => navigate('/permissions')} style={{cursor: 'pointer'}}>
                 settings
               </span>
             </CNavLink>
           </CNavItem>
           <CNavItem>
             <CNavLink href="#">
-              <span className="material-symbols-sharp">
+              <span className="material-symbols-sharp" style={{cursor: 'pointer'}}>
                 info
               </span>
             </CNavLink>
           </CNavItem>
           <CNavItem>
             <CNavLink href="#">
-              <span className="material-symbols-sharp">
+              <span className="material-symbols-sharp" style={{cursor: 'pointer'}}>
                 account_circle
               </span>
             </CNavLink>

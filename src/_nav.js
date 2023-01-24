@@ -103,7 +103,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Vendors',
-    to: '/',
+    to: '/vendors',
     icon: <span className="material-symbols-outlined nav-icon">
     storefront
     </span>,
@@ -111,7 +111,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'User Accounts',
-    to: '/',
+    to: '/users',
     icon: <span className="material-symbols-outlined nav-icon">
     groups
     </span>,

@@ -2,11 +2,13 @@ import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import ExportModel from 'src/components/Models/ExportModel';
+import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
 import StockUpdateModel from 'src/components/Models/StockUpdateModel';
 
 const Inventory = () => {
   const [visible, setVisible] = useState(false)
+  const [visiblePinModel, setVisiblePinModel] = useState(true)
   const [deleteVisible, setDeleteVisible] = useState(false)
   const [updateVisible, setUpdateVisible] = useState(false)
   const search = useLocation().search
@@ -22,7 +24,7 @@ const Inventory = () => {
   }
 
   const navigate = useNavigate();
-  return (
+  return visiblePinModel ?  <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
     <>
       <CRow>
         <CCol>

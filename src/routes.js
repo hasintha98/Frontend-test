@@ -21,6 +21,9 @@ const NewMemo = React.lazy(() => import('./views/dashboard/NewMemo'))
 const ViewMemo = React.lazy(() => import('./views/dashboard/ViewMemo'))
 const ActivityLogs = React.lazy(() => import('./views/dashboard/ActivityLogs'))
 const Customers = React.lazy(() => import('./views/dashboard/Customers'))
+const Vendors = React.lazy(() => import('./views/dashboard/Vendors'))
+const Users = React.lazy(() => import('./views/dashboard/Users'))
+const Permissions = React.lazy(() => import('./views/dashboard/Permissions'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -44,7 +47,10 @@ const routes = [
   { path: '/memos/new', name: 'Memos-new', element: NewMemo },
   { path: '/memos/view', name: 'Memos-view', element: ViewMemo },
   { path: '/logs', name: 'Activity-logs', element: ActivityLogs },
-  { path: '/customers', name: 'Customers', element: Customers }
+  { path: '/customers', name: 'Customers', element: Customers },
+  { path: '/vendors', name: 'Vendors', element: Vendors },
+  { path: '/users', name: 'Users', element: Users },
+  { path: '/permissions', name: 'Permissions', element: Permissions }
 ]
 
 export default routes

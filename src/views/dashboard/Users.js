@@ -2,11 +2,12 @@ import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import AddEditCustomerModel from 'src/components/Models/AddEditCustomerModel';
+import AddEditUsersModel from 'src/components/Models/AddEditUsersModel';
 import ExportModel from 'src/components/Models/ExportModel';
 import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
 
-const Customers = () => {
+const Users = () => {
     const [deleteVisible, setDeleteVisible] = useState(false)
     const [visiblePinModel, setVisiblePinModel] = useState(true)
     const [addCustomerVisible, setAddCustomerVisible] = useState(false)
@@ -34,7 +35,7 @@ const Customers = () => {
             <CRow>
                 <CCol md={8}>
 
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Customers</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Users</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
 
@@ -105,13 +106,11 @@ const Customers = () => {
                 <CTable striped>
                     <CTableHead>
                         <CTableRow color="info">
-                            <CTableHeaderCell scope="col" className='text-center'>Customer #</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Customer Name</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Phone</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Id #</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Name</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Role</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Email</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Complete
-                                Orders</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Pending Orders</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Status</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Action</CTableHeaderCell>
                         </CTableRow>
                     </CTableHead>
@@ -119,11 +118,9 @@ const Customers = () => {
                         <CTableRow>
                             <CTableDataCell className='text-center'>452</CTableDataCell>
                             <CTableDataCell className='text-center'>John Doe </CTableDataCell>
-                            <CTableDataCell className='text-center'>759999999</CTableDataCell>
+                            <CTableDataCell className='text-center'>Admin</CTableDataCell>
                             <CTableDataCell className='text-center'>cashcustomer@cashcustomer.com</CTableDataCell>
-
-                            <CTableDataCell className='text-center'>1</CTableDataCell>
-                            <CTableDataCell className='text-center'>0</CTableDataCell>
+                            <CTableDataCell className='text-center'>Active</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => handleEditButton(true)}>
                                     edit
@@ -136,11 +133,9 @@ const Customers = () => {
                         <CTableRow>
                             <CTableDataCell className='text-center'>452</CTableDataCell>
                             <CTableDataCell className='text-center'>John Doe </CTableDataCell>
-                            <CTableDataCell className='text-center'>759999999</CTableDataCell>
+                            <CTableDataCell className='text-center'>Admin</CTableDataCell>
                             <CTableDataCell className='text-center'>cashcustomer@cashcustomer.com</CTableDataCell>
-
-                            <CTableDataCell className='text-center'>1</CTableDataCell>
-                            <CTableDataCell className='text-center'>0</CTableDataCell>
+                            <CTableDataCell className='text-center'>Active</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => handleEditButton(true)}>
                                     edit
@@ -153,11 +148,9 @@ const Customers = () => {
                         <CTableRow>
                             <CTableDataCell className='text-center'>452</CTableDataCell>
                             <CTableDataCell className='text-center'>John Doe </CTableDataCell>
-                            <CTableDataCell className='text-center'>759999999</CTableDataCell>
+                            <CTableDataCell className='text-center'>Admin</CTableDataCell>
                             <CTableDataCell className='text-center'>cashcustomer@cashcustomer.com</CTableDataCell>
-
-                            <CTableDataCell className='text-center'>1</CTableDataCell>
-                            <CTableDataCell className='text-center'>0</CTableDataCell>
+                            <CTableDataCell className='text-center'>Active</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => handleEditButton(true)}>
                                     edit
@@ -170,11 +163,9 @@ const Customers = () => {
                         <CTableRow>
                             <CTableDataCell className='text-center'>452</CTableDataCell>
                             <CTableDataCell className='text-center'>John Doe </CTableDataCell>
-                            <CTableDataCell className='text-center'>759999999</CTableDataCell>
+                            <CTableDataCell className='text-center'>Admin</CTableDataCell>
                             <CTableDataCell className='text-center'>cashcustomer@cashcustomer.com</CTableDataCell>
-
-                            <CTableDataCell className='text-center'>1</CTableDataCell>
-                            <CTableDataCell className='text-center'>0</CTableDataCell>
+                            <CTableDataCell className='text-center'>Active</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => handleEditButton(true)}>
                                     edit
@@ -226,10 +217,10 @@ const Customers = () => {
                 </CCol>
             </CRow>
             <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
-            <AddEditCustomerModel visible={addCustomerVisible} onClose={(val) => setAddCustomerVisible(val)} isEdit={isEdit} values={values} />
+            <AddEditUsersModel visible={addCustomerVisible} onClose={(val) => setAddCustomerVisible(val)} isEdit={isEdit} values={values} />
             <RecordDeleteModel visible={deleteVisible} onClose={(val) => setDeleteVisible(val)} recordId={"#5765"} />
         </>
     )
 }
 
-export default Customers
+export default Users

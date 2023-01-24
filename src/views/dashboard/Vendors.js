@@ -2,11 +2,12 @@ import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import AddEditCustomerModel from 'src/components/Models/AddEditCustomerModel';
+import AddEditVendorModel from 'src/components/Models/AddEditVendorModel';
 import ExportModel from 'src/components/Models/ExportModel';
 import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
 
-const Customers = () => {
+const Vendors = () => {
     const [deleteVisible, setDeleteVisible] = useState(false)
     const [visiblePinModel, setVisiblePinModel] = useState(true)
     const [addCustomerVisible, setAddCustomerVisible] = useState(false)
@@ -34,7 +35,7 @@ const Customers = () => {
             <CRow>
                 <CCol md={8}>
 
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Customers</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Vendors</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
 
@@ -105,13 +106,11 @@ const Customers = () => {
                 <CTable striped>
                     <CTableHead>
                         <CTableRow color="info">
-                            <CTableHeaderCell scope="col" className='text-center'>Customer #</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Customer Name</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Vendor #</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Vendor Name</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Phone</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Email</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Complete
-                                Orders</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Pending Orders</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center'>Purchase Orders</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Action</CTableHeaderCell>
                         </CTableRow>
                     </CTableHead>
@@ -121,8 +120,6 @@ const Customers = () => {
                             <CTableDataCell className='text-center'>John Doe </CTableDataCell>
                             <CTableDataCell className='text-center'>759999999</CTableDataCell>
                             <CTableDataCell className='text-center'>cashcustomer@cashcustomer.com</CTableDataCell>
-
-                            <CTableDataCell className='text-center'>1</CTableDataCell>
                             <CTableDataCell className='text-center'>0</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => handleEditButton(true)}>
@@ -138,8 +135,6 @@ const Customers = () => {
                             <CTableDataCell className='text-center'>John Doe </CTableDataCell>
                             <CTableDataCell className='text-center'>759999999</CTableDataCell>
                             <CTableDataCell className='text-center'>cashcustomer@cashcustomer.com</CTableDataCell>
-
-                            <CTableDataCell className='text-center'>1</CTableDataCell>
                             <CTableDataCell className='text-center'>0</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => handleEditButton(true)}>
@@ -155,8 +150,6 @@ const Customers = () => {
                             <CTableDataCell className='text-center'>John Doe </CTableDataCell>
                             <CTableDataCell className='text-center'>759999999</CTableDataCell>
                             <CTableDataCell className='text-center'>cashcustomer@cashcustomer.com</CTableDataCell>
-
-                            <CTableDataCell className='text-center'>1</CTableDataCell>
                             <CTableDataCell className='text-center'>0</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => handleEditButton(true)}>
@@ -172,8 +165,6 @@ const Customers = () => {
                             <CTableDataCell className='text-center'>John Doe </CTableDataCell>
                             <CTableDataCell className='text-center'>759999999</CTableDataCell>
                             <CTableDataCell className='text-center'>cashcustomer@cashcustomer.com</CTableDataCell>
-
-                            <CTableDataCell className='text-center'>1</CTableDataCell>
                             <CTableDataCell className='text-center'>0</CTableDataCell>
                             <CTableDataCell className='d-flex justify-content-around'>
                                 <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => handleEditButton(true)}>
@@ -226,10 +217,10 @@ const Customers = () => {
                 </CCol>
             </CRow>
             <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
-            <AddEditCustomerModel visible={addCustomerVisible} onClose={(val) => setAddCustomerVisible(val)} isEdit={isEdit} values={values} />
+            <AddEditVendorModel visible={addCustomerVisible} onClose={(val) => setAddCustomerVisible(val)} isEdit={isEdit} values={values} />
             <RecordDeleteModel visible={deleteVisible} onClose={(val) => setDeleteVisible(val)} recordId={"#5765"} />
         </>
     )
 }
 
-export default Customers
+export default Vendors
