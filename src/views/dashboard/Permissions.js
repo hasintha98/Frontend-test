@@ -1,4 +1,4 @@
-import { CButton, CCol, CCollapse, CFormInput, CFormLabel, CFormSwitch, CRow, CTooltip } from '@coreui/react'
+import { CButton, CCol, CCollapse, CFormCheck, CFormInput, CFormLabel, CFormSwitch, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow, CTooltip } from '@coreui/react'
 import React, { useState } from 'react'
 import 'react-tooltip/dist/react-tooltip.css'
 import { Tooltip as ReactTooltip } from 'react-tooltip'
@@ -54,8 +54,43 @@ const Permissions = () => {
                     <hr />
                 </CRow>
                 <CRow className='mt-3'>
-                    <CCollapse visible={generalCollapseVisible} style={{ marginLeft: '25%' }}>
+                    <CCollapse visible={generalCollapseVisible} className='p-5' style={{marginLeft: "20px", marginRight: "50px"}}>
+                      
+                        <CTable bordered className='p-5'>
+                            <CTableHead>
+                                <CTableRow >
+                                    <CTableHeaderCell scope="col"></CTableHeaderCell>
+                                    <CTableHeaderCell scope="col">Production</CTableHeaderCell>
+                                    <CTableHeaderCell scope="col">Inventory</CTableHeaderCell>
+                                    <CTableHeaderCell scope="col">Sales</CTableHeaderCell>
+                                </CTableRow>
+                            </CTableHead>
+                            <CTableBody>
+                                <CTableRow>
+                                    <CTableDataCell scope="col">User</CTableDataCell>
+                                    <CTableHeaderCell scope="row"><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
+                                    <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                                    <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
 
+                                </CTableRow>
+                                <CTableRow>
+                                    <CTableDataCell scope="col">Moderator</CTableDataCell>
+                                    <CTableHeaderCell scope="row"><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
+                                    <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                                    <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+
+                                </CTableRow>
+                                <CTableRow>
+                                    <CTableDataCell scope="col">Admin</CTableDataCell>
+                                    <CTableHeaderCell scope="row"><CFormCheck id="flexCheckDefault" disabled /></CTableHeaderCell>
+                                    <CTableDataCell><CFormCheck id="flexCheckDefault" disabled /></CTableDataCell>
+                                    <CTableDataCell><CFormCheck id="flexCheckDefault" disabled /></CTableDataCell>
+
+                                </CTableRow>
+                            </CTableBody>
+                        </CTable>
+
+                        {/* 
                         <CRow className="mb-3" >
                             <CFormLabel htmlFor="Admin" className="col-sm-2 col-form-label">User</CFormLabel>
                             <CCol md={2}>
@@ -83,7 +118,7 @@ const Permissions = () => {
                                 <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Capabilities</CButton>
                             </CCol>
 
-                        </CRow>
+                        </CRow> */}
                     </CCollapse>
 
                 </CRow>
