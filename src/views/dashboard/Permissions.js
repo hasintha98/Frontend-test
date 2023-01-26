@@ -52,7 +52,7 @@ const Permissions = () => {
                         </span>
                     </CCol>
                     <hr />
-                </CRow>
+                </CRow> 
                 <CRow className='mt-3'>
                     <CCollapse visible={generalCollapseVisible} className='p-5' style={{marginLeft: "20px", marginRight: "50px"}}>
                       
