@@ -6,7 +6,7 @@
 2.npm start
 
 **Paths**
-
+```
 /#/add-record - *Add production single page (without login)*
 /#/dashboard - *Dashboard*
 /#/production - *production*
@@ -22,4 +22,5 @@
 /#/vendors - *Vendors page*
 /#/users - *User Accounts page*
 /#/permissions - *Permissions page*
+```
 
