@@ -30,17 +30,17 @@ const _nav = [
       {
         component: CNavItem,
         name: 'PlyWood',
-        to: '/inventory?type=plywood',
+        to: '/inventory/plywood',
       },
       {
         component: CNavItem,
         name: 'Row Materials',
-        to: '/inventory?type=raw',
+        to: '/inventory/raw',
       },
       {
         component: CNavItem,
         name: 'Other',
-        to: '/inventory?type=other',
+        to: '/inventory/other',
       },
  
     ],

@@ -5,6 +5,8 @@ const Production = React.lazy(() => import('./views/dashboard/Production'))
 const AddProduction = React.lazy(() => import('./views/dashboard/AddProduction'))
 const EditProduction = React.lazy(() => import('./views/dashboard/EditProduction'))
 const Inventory = React.lazy(() => import('./views/dashboard/Inventory'))
+const PlyWood = React.lazy(() => import('./views/dashboard/PlyWood'))
+const Other = React.lazy(() => import('./views/dashboard/Other'))
 const AddPlywoodType = React.lazy(() => import('./views/dashboard/AddPlywoodType'))
 const RawRecords = React.lazy(() => import('./views/dashboard/RawRecords'))
 const SalesOrder = React.lazy(() => import('./views/dashboard/SalesOrder'))
@@ -31,7 +33,9 @@ const routes = [
   { path: '/production', name: 'Production', element: Production },
   { path: '/production/add', name: 'Production-Add', element: AddProduction },
   { path: '/production/edit', name: 'Production-edit', element: EditProduction },
-  { path: '/inventory', name: 'Inventory', element: Inventory },
+  { path: '/inventory/raw', name: 'Inventory-raw', element: Inventory },
+  { path: '/inventory/plywood', name: 'Inventory-ply', element: PlyWood },
+  { path: '/inventory/other', name: 'Inventory-ply', element: Other },
   { path: '/inventory/add-plywood', name: 'Inventory-Plywoord', element: AddPlywoodType },
   { path: '/raw', name: 'Raw-Records', element: RawRecords },
   { path: '/sales', name: 'Sales-Order', element: SalesOrder },

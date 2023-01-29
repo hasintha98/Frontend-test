@@ -1,17 +1,83 @@
 import { CAlert, CButton, CCol, CFormInput, CFormLabel, CModal, CModalBody, CRow } from '@coreui/react'
 import React, { useRef, useState } from 'react'
+import ProductionService from 'src/services/ProductionService'
+import RawMaterialService from 'src/services/RawMaterialService'
+import Production from 'src/views/dashboard/Production'
+import swal from 'sweetalert'
 
 const AddProductionRecord = () => {
     const [visible, setVisible] = useState(false)
-    const [alert, setAlert] = useState(true)
+    const [alert, setAlert] = useState(false)
     const [isFocus, setIsFocus] = useState(false)
     const [inputValue, setInputValue] = useState("")
     const [isHovered, setIsHovered] = useState(false)
+    const [successRecordId, setSuccessRecordId] = useState(null)
+    const [count, setCount] = useState(0)
+
+    const [date, setDate] = useState("")
+    const [size, setSize] = useState(null)
+    const [type, setType] = useState("")
+    const [qty, setQty] = useState(null)
+
+
     const inputRef = useRef()
 
-    const items = [
-        "React", "CSS"
+    let items = [
+        "React", "CSS", "HTML", "Red", "Roll", "Reel"
     ]
+
+    const handleInputValue = (val) => {
+        setInputValue(val)
+        // setCount(0)
+    }
+
+    const submitProductionDetails = () => {
+
+        if(!qty) {
+            console.log(qty)
+            return
+        }
+
+        if(date == "") {
+            console.log(date)
+            return
+        }
+
+        if(!size) {
+            console.log(size)
+            return
+        }
+
+        if(inputValue == "") {
+            console.log(inputValue)
+            return
+        }
+        ProductionService.createNewProductionRecord("Production",date, Number(size), inputValue, Number(qty)).then(response => {
+            setAlert(true)
+            clearFields()
+            console.log(response)
+            setSuccessRecordId(response.data.pid)
+        }).catch(error => {
+            console.log(error.response.data.message)
+            setAlert(false)
+            swal("Error!", error.response.data.message, "error");
+        }) 
+    }
+
+    const handleKeypress = e => {
+        if (e.key === 'Enter') {
+            submitProductionDetails();
+            setVisible(false)
+        }
+    };
+
+    console.log(date)
+    const clearFields = () => {
+        setDate(null)
+        setSize(null)
+        setInputValue("")
+        setQty(null)
+    }
     return (
         <div className='body mb-5 d-flex flex-column min-vh-100' style={{ overflow: 'hidden' }}>
             {alert ? <CAlert
@@ -20,7 +86,7 @@ const AddProductionRecord = () => {
                 dismissible
                 onClose={() => setAlert(!alert)}
             >
-                Production <strong>#5752</strong> Recorded Successfully
+                Production <strong>#PIN{successRecordId}</strong> Recorded Successfully
             </CAlert> : <div className='mb-5'></div>}
             <CRow>
                 <CCol
@@ -40,6 +106,8 @@ const AddProductionRecord = () => {
                             <CFormInput
                                 style={{ backgroundColor: '#F2F2F2' }}
                                 type="datetime-local"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
                                 id="date" />
                         </CCol>
                     </CRow>
@@ -48,8 +116,10 @@ const AddProductionRecord = () => {
                         <CCol sm={10}>
                             <CFormInput
                                 style={{ backgroundColor: '#F2F2F2' }}
-                                type="text"
+                                type="number"
                                 placeholder="PlyWood Size in (mm)"
+                                value={size}
+                                onChange={(e) => setSize(e.target.value)}
                                 id="size" />
                         </CCol>
                     </CRow>
@@ -69,7 +139,7 @@ const AddProductionRecord = () => {
                                 }}
                                 value={inputValue}
                                 ref={inputRef}
-                                onChange={(e) => setInputValue(e.target.value)}
+                                onChange={(e) => handleInputValue(e.target.value)}
                                 id="type" />
                             {isFocus && (
                                 <div
@@ -80,9 +150,8 @@ const AddProductionRecord = () => {
                                 >
                                     {items.map((suggest, key) => {
                                         const isMatch = suggest.toLowerCase().indexOf(inputValue.toLowerCase()) > -1
-
-
-                                        return (
+                                        
+                                       return (
                                             <div key={key}>
                                                 {isMatch && (
                                                     <div
@@ -108,6 +177,8 @@ const AddProductionRecord = () => {
                                 style={{ backgroundColor: '#F2F2F2' }}
                                 type="number"
                                 placeholder="How many?"
+                                value={qty}
+                                onChange={(e) => setQty(e.target.value)}
                                 autoComplete={items}
                                 id="qty" />
                         </CCol>
@@ -142,10 +213,10 @@ const AddProductionRecord = () => {
                     </p>
                     <p
                         style={{ color: '#00B050' }}>
-                        9mm LO/EVR : 25
+                        {size}mm {inputValue} : {qty}
                     </p>
                     <p
-                        style={{ fontSize: '0.8em' }}>
+                        style={{ fontSize: '0.8em', marginBottom: '10px' }}>
                         To continue please enter admin pin code and press Enter key
                     </p>
                     <div
@@ -154,6 +225,7 @@ const AddProductionRecord = () => {
                             style={{ backgroundColor: '#F2F2F2' }}
                             type="number"
                             autoFocus
+                            onKeyPress={handleKeypress}
                             id="qty" />
                         <CButton
                             color="danger"

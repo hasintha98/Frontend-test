@@ -7,9 +7,8 @@ import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
 import StockUpdateModel from 'src/components/Models/StockUpdateModel';
 import NoData from 'src/extra/NoData/NoData';
 import RawMaterialService from 'src/services/RawMaterialService';
-import swal from 'sweetalert';
 
-const Inventory = () => {
+const Other = () => {
   const [visible, setVisible] = useState(false)
   const [visiblePinModel, setVisiblePinModel] = useState(true)
   const [deleteVisible, setDeleteVisible] = useState(false)
@@ -23,17 +22,13 @@ const Inventory = () => {
   const [count, setCount] = useState(0);
   const [updateOnRefReshPage, setUpdateOnRefreshPage] = useState(0);
   const [isRawMaterials, setRawMaterialsState] = useState(false);
-  const [modelIsAdding, setModelIsAdding] = useState(true)
-  const [isCheckingApi, setCheckingApi] = useState(false);
-  const [selectedMenu, setSelectedMenu] = useState("raw")
-  const [searchTitle, setSearchTitle] = useState("");
 
-  const [refreshPage, setRefreshPage] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState(null)
-  const [deleteItem, setDeleteItem] = useState(null)
-  // useEffect(() => {
-  //   setSelectedMenu(type)
-  // }, [type])
+  const [isCheckingApi, setCheckingApi] = useState(false);
+  const [selectedMenu, setSelectedMenu] = useState("other")
+  const [searchTitle, setSearchTitle] = useState("");
+//   useEffect(() => {
+//     setSelectedMenu(type)
+//   }, [type])
 
   const handleSelectedMenu = (value) => {
     navigate(`/inventory/${value}`)
@@ -168,18 +163,6 @@ const Inventory = () => {
     </>
   );
 
-
-  const deleteRawMaterial = () => {
-    RawMaterialService.deleteRawMaterialRecord("user_page", [Number(deleteItem.id)])
-      .then(response => {
-        swal("Success!", "Raw Material Deleted Successfully", "success");
-        setRefreshPage(!refreshPage)
-      }).catch(error => {
-        console.log(error.response.data.message)
-        swal("Error!", error.response.data.message, "error");
-      })
-  }
-
   const navigate = useNavigate();
   return visiblePinModel ? <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
     <>
@@ -298,8 +281,7 @@ const Inventory = () => {
                 color="primary"
                 variant="outline"
                 onClick={() => setPage(page + 1)}
-                disabled={page == count}
-              >
+                disabled={page == count}>
                 Next
               </CButton>
             </CCol>
@@ -319,7 +301,8 @@ const Inventory = () => {
               <CTableRow color="info">
                 <CTableHeaderCell scope="col" className='text-center' width={5}><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
                 <CTableHeaderCell scope="col" className='text-center'>SKU</CTableHeaderCell>
-                <CTableHeaderCell scope="col" className='text-center'>Product</CTableHeaderCell>
+                <CTableHeaderCell scope="col" className='text-center'>Production</CTableHeaderCell>
+                <CTableHeaderCell scope="col" className='text-center'>Type</CTableHeaderCell>
                 <CTableHeaderCell scope="col" className='text-center'>Stock on Hand</CTableHeaderCell>
                 <CTableHeaderCell scope="col" className='text-center'>Warnings</CTableHeaderCell>
                 <CTableHeaderCell scope="col" className='text-center'>Action</CTableHeaderCell>
@@ -330,37 +313,23 @@ const Inventory = () => {
                 <CTableRow key={key}>
                   <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
                   <CTableHeaderCell scope="row" className='text-center' style={{ color: "blue", fontWeight: "800" }}>{"#RM" + item.sku.toString()}</CTableHeaderCell>
+                  <CTableDataCell className='text-center'>{item.sku}</CTableDataCell>
                   <CTableDataCell className='text-center'>{item.type}</CTableDataCell>
                   <CTableDataCell className='text-center'>{Math.floor(item.stock * 1e3) / 1e3}</CTableDataCell>
                   <CTableDataCell className='text-center'>{
                     stockGenarator(item.limit, item.stock)
                   }</CTableDataCell>
                   <CTableDataCell className='d-flex justify-content-around'>
-                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => {
-                      setSelectedProduct(item)
-                      setModelIsAdding(true)
-                      setUpdateVisible(true)
-                    }}>
+                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setUpdateVisible(true)}>
                       upgrade
                     </span>
-                    {item.type == "Glue" || item.type == "Wheat Flour" ? <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
-                      onClick={() => {
-                        setSelectedProduct(item)
-                        setModelIsAdding(false)
-                        setUpdateVisible(true)
-                      }}>
+                    {item.type == "Glue" || item.type == "Wheat Flour" ? <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setUpdateVisible(true)}>
                       download_for_offline
                     </span> : null}
                     <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
                       edit
                     </span>
-                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
-                      onClick={
-                        () => {
-                          setDeleteItem(item)
-                          setDeleteVisible(true)
-                        }}
-                    >
+                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
                       delete
                     </span>
                   </CTableDataCell>
@@ -421,23 +390,11 @@ const Inventory = () => {
 
         </CCol>
       </CRow>
-      <RecordDeleteModel visible={deleteVisible}
-        onClose={(val, auth) => {
-          if (auth == "AUTHENTICATED") deleteRawMaterial()
-          setDeleteVisible(val)
-        }
-        }
-        recordId={`#RM${deleteItem?.sku}`} />
-      <StockUpdateModel
-        visible={updateVisible}
-        onClose={(val) => setUpdateVisible(val)}
-        product={selectedProduct}
-        isAdding={modelIsAdding}
-        refreshPage={refreshPage}
-        type={"raw"} />
+      <RecordDeleteModel visible={deleteVisible} onClose={(val) => setDeleteVisible(val)} recordId={"#5765"} />
+      <StockUpdateModel visible={updateVisible} onClose={(val) => setUpdateVisible(val)} />
       <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
     </>
   )
 }
 
-export default Inventory
+export default Other

@@ -1,5 +1,5 @@
 import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CFormCheck, CFormInput, CFormLabel, CFormSelect, CInputGroup, CInputGroupText, CModal, CModalBody, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 //import DateRangePicker from 'react-bootstrap-daterangepicker';
 // import 'bootstrap/dist/css/bootstrap.css';
 // you will also need the css that comes with bootstrap-daterangepicker
@@ -13,30 +13,213 @@ import { predefinedRanges } from 'src/data/preDefinedDateRanges';
 import ExportModel from 'src/components/Models/ExportModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
 import PinRequiredModel from 'src/components/Models/PinRequiredModel';
+import ProductionService from 'src/services/ProductionService';
+import PlyWoodTypesServices from 'src/services/PlyWoodTypesServices';
+import swal from 'sweetalert';
 
 const Production = () => {
     const [visible, setVisible] = useState(false)
     const [deleteVisible, setDeleteVisible] = useState(false)
     const [visiblePinModel, setVisiblePinModel] = useState(true)
-    const [startDate, setStartDate] = useState("")
-    const [endDate, setEndDate] = useState("")
+    const [startDate, setStartDate] = useState(new Date().setMonth(new Date().getMonth() - 4))
+    const [endDate, setEndDate] = useState(new Date())
+    const [deleteItem, setDeleteItem] = useState(null)
+    const [refreshPage, setRefreshPage] = useState(false)
+    const [selectedProduct, setSelectedProduct] = useState(null)
+    const [plyWoodProductionList, setPlyWoodProductionList] = useState([]);
+
+    const plyWoodProductionsRef = useRef();
+
+    const [page, setPage] = useState(1);
+    const [count, setCount] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+
+    const pageSizes = [10, 25, 50];
+
+    plyWoodProductionsRef.current = plyWoodProductionList;
+
+    const [isPlyWoodProductions, setPlyWoodProductionsState] = useState(false);
+
+    const [isCheckingApi, setCheckingApi] = useState(false);
+    const [searchTitle_Type, setSearchTitle_Type] = useState("");
+    const [searchTitle_Size, setSearchTitle_Size] = useState("");
+
+    const [updateOnRefReshPage, setUpdateOnRefreshPage] = useState(0);
+
+    useEffect(() => {
+        retrievePlyWoodProductionList()
+    }, [page, pageSize, updateOnRefReshPage])
+
+    const retrievePlyWoodProductionList = () => {
+
+        setCheckingApi(true);
+
+        const params = getRequestParams(
+            searchTitle_Type,
+            searchTitle_Size,
+            page,
+            pageSize
+        );
+
+        var page_req = Number(params.page);
+        var size_req = Number(params.size);
+        var title_type_req = params.title_type
+            ? params.title_type.toString().trim()
+            : "";
+        var title_size_req = params.title_size
+            ? params.title_size.toString().trim()
+            : "";
+
+        var startTime = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
+        var endTime = moment(endDate).format("YYYY-MM-DD HH:mm:ss");
+
+        var page_role_type = "dash_page";
+
+        ProductionService.getAllProductionRecordsList(
+            page_role_type,
+            page_req,
+            size_req,
+            title_type_req,
+            title_size_req,
+            startTime,
+            endTime
+        ).then(
+            (response) => {
+                //console.log("Productions  list-> ", response);
+
+                const { productionList, totalPages } = response.data;
+
+                if (productionList.length) {
+                    var revproductionList = productionList;//.reverse();
+
+                    setPlyWoodProductionList(revproductionList);
+                    console.log(revproductionList)
+                    setPlyWoodProductionsState(true);
+                }
+
+                setCount(totalPages);
+
+
+                setCheckingApi(false);
+            },
+            (error) => {
+                // const resMessage =
+                //   (error.response &&
+                //     error.response.data &&
+                //     error.response.data.message) ||
+                //   error.message ||
+                //   error.toString();
+
+                //console.log("login in error ", resMessage);
+                setPlyWoodProductionsState(false);
+                setPlyWoodProductionList([]);
+
+                setCheckingApi(false);
+            }
+        );
+    };
+
+    const onChangeSearchTitle_Type = (e) => {
+        const searchTitle = e.target.value;
+        setSearchTitle_Type(searchTitle);
+
+        var isSearchEmpty = searchTitle.trim().length ? false : true;
+
+        if (isSearchEmpty) {
+            setPage(1);
+            //retrievePlyWoodProductionList();
+            setUpdateOnRefreshPage(Math.random());
+
+            //console.log("Search is empty type ...!! ");
+        }
+
+        //console.log("Search input changing type -> ", searchTitle);
+    };
+
+    const onChangeSearchTitle_Size = (e) => {
+        const searchTitle = e.target.value;
+        setSearchTitle_Size(searchTitle);
+
+        var isSearchEmpty = searchTitle.trim().length ? false : true;
+
+        if (isSearchEmpty) {
+            setPage(1);
+            //retrievePlyWoodProductionList();
+            setUpdateOnRefreshPage(Math.random());
+
+            //console.log("Search is empty size ...!! ");
+        }
+
+        //console.log("Search input changing size -> ", searchTitle);
+    };
+
+    const findByTitle = () => {
+        setPage(1);
+        retrievePlyWoodProductionList();
+    };
+
+    const getRequestParams = (
+        searchTitle_Type,
+        searchTitle_Size,
+        page,
+        pageSize
+    ) => {
+        let params = {};
+
+        if (searchTitle_Type) {
+            params["title_type"] = searchTitle_Type;
+        }
+        if (searchTitle_Size) {
+            params["title_size"] = searchTitle_Size;
+        }
+
+        if (page) {
+            params["page"] = page - 1;
+        }
+
+        if (pageSize) {
+            params["size"] = pageSize;
+        }
+
+        return params;
+    };
+
+    const handleDateRangeOptions = (val) => {
+        //console.log("Date Range handling-> ", val);
+        console.log(val)
+        setStartDate(val[0])
+        setEndDate(val[1])
+    };
+
     const navigate = useNavigate();
 
     function handleDateRange(event, picker) {
         setStartDate(moment(picker.startDate).format("DD/MM/YYYY"));
         setEndDate(moment(picker.endDate).format("DD/MM/YYYY"));
     }
-    return visiblePinModel ?  <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
+
+    const deleteProduction = () => {
+        PlyWoodTypesServices.deletePlyWoodTypesRecord("user_page", [Number(deleteItem.id)])
+            .then(response => {
+                swal("Success!", "Production Deleted Successfully", "success");
+                setRefreshPage(!refreshPage)
+            }).catch(error => {
+                console.log(error.response.data.message)
+                swal("Error!", error.response.data.message, "error");
+            })
+    }
+
+    return visiblePinModel ? <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
         <>
             <CRow>
                 <CCol>
                     <CRow>
                         <CCol md={6}>
                             <CInputGroup >
-                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Production' />
-                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Type' />
+                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Production' onChange={onChangeSearchTitle_Size} />
+                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Type' onChange={onChangeSearchTitle_Type} />
                                 <CInputGroupText className='default-border' style={{ cursor: 'pointer' }}>
-                                    <span className="material-symbols-outlined">
+                                    <span className="material-symbols-outlined" onClick={findByTitle}>
                                         search
                                     </span></CInputGroupText>
                             </CInputGroup>
@@ -87,24 +270,43 @@ const Production = () => {
                         style={{ width: "100%" }}
                         placeholder="Date"
                         format="yyyy-MM-dd HH:mm:ss"
+                        onOk={handleDateRangeOptions}
+                        onChange={handleDateRangeOptions}
                         defaultCalendarValue={[new Date('2023-01-01 00:00:00'), new Date()]}
                     />
                 </CCol>
                 <CCol md={1}>
-                    <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Filter</CButton>
+                    <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" onClick={() => retrievePlyWoodProductionList()} >Filter</CButton>
                 </CCol>
 
                 <CCol className="d-flex justify-content-end">
                     <CRow>
                         <CCol>
-                            <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Prev</CButton>
+                            <CButton
+                                disabled={page == 1}
+                                className='blue-button'
+                                style={{ width: "100%" }}
+                                color="primary"
+                                variant="outline"
+                                onClick={() => setPage(page - 1)} >
+                                Prev
+                            </CButton>
                         </CCol>
                         <CCol>
-                            <span style={{ color: "#2F5597", fontWeight: "bold" }} className='mt-1'>1 of 5</span>
+                            <span style={{ color: "#2F5597", fontWeight: "bold" }} className='mt-1'>{page} of {count}</span>
                         </CCol>
                         <CCol>
 
-                            <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Next</CButton>
+                            <CButton
+                                className='blue-button'
+                                style={{ width: "100%" }}
+                                color="primary"
+                                variant="outline"
+                                onClick={() => setPage(page + 1)}
+                                disabled={page == count}
+                            >
+                                Next
+                            </CButton>
                         </CCol>
 
 
@@ -126,70 +328,33 @@ const Production = () => {
                         </CTableRow>
                     </CTableHead>
                     <CTableBody>
-                        <CTableRow>
-                            <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                            <CTableHeaderCell scope="row">Default</CTableHeaderCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
-                                    edit
-                                </span>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
-                                    delete
-                                </span>
-                            </CTableDataCell>
-                        </CTableRow>
-                        <CTableRow >
-                            <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                            <CTableHeaderCell scope="row">Default</CTableHeaderCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
-                                    edit
-                                </span>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
-                                    delete
-                                </span>
-                            </CTableDataCell>
-                        </CTableRow>
-                        <CTableRow >
-                            <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                            <CTableHeaderCell scope="row">Default</CTableHeaderCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
-                                    edit
-                                </span>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
-                                    delete
-                                </span>
-                            </CTableDataCell>
-                        </CTableRow>
-                        <CTableRow >
-                            <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                            <CTableHeaderCell scope="row">Default</CTableHeaderCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell>Cell</CTableDataCell>
-                            <CTableDataCell className='d-flex justify-content-around'>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
-                                    edit
-                                </span>
-                                <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
-                                    delete
-                                </span>
-                            </CTableDataCell>
-                        </CTableRow>
+                        {plyWoodProductionList.map((item, index) => (
+                            <CTableRow key={index}>
+                                <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                                <CTableHeaderCell scope="row">#PIN{item.pin}</CTableHeaderCell>
+                                <CTableDataCell>{item.date}</CTableDataCell>
+                                <CTableDataCell>{item.size}mm</CTableDataCell>
+                                <CTableDataCell>{item.type}</CTableDataCell>
+                                <CTableDataCell>{item.qty}</CTableDataCell>
+                                <CTableDataCell className='d-flex justify-content-around'>
+                                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                                        onClick={() => navigate(`/production/edit?pin=${item.pin}&date=${moment(new Date(item.date)).format('YYYY-MM-DDTHH:mm')}&size=${item.size}&type=${item.type}&qty=${item.qty}`)}>
+                                        edit
+                                    </span>
+                                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                                        onClick={
+                                            () => {
+                                                setDeleteItem(item)
+                                                setDeleteVisible(true)
+                                            }}
+                                    >
+                                        delete
+                                    </span>
+                                </CTableDataCell>
+                            </CTableRow>
+                        ))}
+
+
 
                     </CTableBody>
                 </CTable>
@@ -200,34 +365,58 @@ const Production = () => {
                     <CRow>
                         <CCol>
 
-                            <CDropdown variant="btn-group" direction="dropup" >
-                                <CDropdownToggle style={{ backgroundColor: '#fff' }} color="secondary">1</CDropdownToggle>
+                            <CDropdown style={{ width: "100%" }} variant="btn-group" direction="dropup" >
+                                <CDropdownToggle style={{ backgroundColor: '#fff' }} color="secondary">{pageSize}</CDropdownToggle>
                                 <CDropdownMenu>
-                                    <CDropdownItem href="#">2</CDropdownItem>
-                                    <CDropdownItem href="#">3</CDropdownItem>
-                                    <CDropdownItem href="#">4</CDropdownItem>
-
+                                    {pageSizes.map((item, key) => (
+                                        <CDropdownItem key={key} value={item} onClick={() => setPageSize(item)}>{item}</CDropdownItem>
+                                    ))}
                                 </CDropdownMenu>
                             </CDropdown>
                         </CCol>
                         <CCol>
-                            <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Prev</CButton>
+                            <CButton
+                                disabled={page == 1}
+                                className='blue-button'
+                                style={{ width: "100%" }}
+                                color="primary"
+                                variant="outline"
+                                onClick={() => setPage(page - 1)}
+                            >
+                                Prev
+                            </CButton>
                         </CCol>
                         <CCol>
-                            <span style={{ color: "#2F5597", fontWeight: "bold" }} className='mt-1'>1 of 5</span>
+                            <span style={{ color: "#2F5597", fontWeight: "bold" }} className='mt-1'>{page} of {count}</span>
                         </CCol>
                         <CCol>
 
-                            <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Next</CButton>
+                            <CButton
+                                className='blue-button'
+                                style={{ width: "100%" }}
+                                color="primary"
+                                variant="outline"
+                                onClick={() => setPage(page + 1)}
+                                disabled={page == count}>
+                                Next
+                            </CButton>
                         </CCol>
 
 
                     </CRow>
+
                 </CCol>
             </CRow>
-            <RecordDeleteModel visible={deleteVisible} onClose={(val) => setDeleteVisible(val)} recordId={"#5765"} />
+            <RecordDeleteModel
+                visible={deleteVisible}
+                onClose={(val, auth) => {
+                    if (auth == "AUTHENTICATED") deleteProduction()
+                    setDeleteVisible(val)
+                }
+                }
+                recordId={`#PIN${deleteItem?.pin}`} />
             <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
-           
+
         </>
     )
 }

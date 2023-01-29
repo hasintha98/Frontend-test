@@ -1,34 +1,84 @@
 import { CAlert, CButton, CCol, CFormInput, CFormLabel, CModal, CModalBody, CRow } from '@coreui/react'
-import React, { useRef, useState } from 'react'
+import moment from 'moment'
+import React, { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import ProductionService from 'src/services/ProductionService'
+import swal from 'sweetalert'
 
 const EditProductionRecord = () => {
     const [visible, setVisible] = useState(false)
-    const [alert, setAlert] = useState(true)
+    const [alert, setAlert] = useState(false)
     const [isFocus, setIsFocus] = useState(false)
     const [inputValue, setInputValue] = useState("")
     const [isHovered, setIsHovered] = useState(false)
     const inputRef = useRef()
+    const [successRecordId, setSuccessRecordId] = useState(null)
+    const [date, setDate] = useState(null)
+    const [size, setSize] = useState(null)
+    const [type, setType] = useState("")
+    const [qty, setQty] = useState(null)
+    const [id, setId] = useState("")
 
+    const search = useLocation().search
+
+    useEffect(() => {
+        setId(new URLSearchParams(search).get('pin'))
+        setInputValue(new URLSearchParams(search).get('type'))
+        setDate(new URLSearchParams(search).get('date'))
+        setSize(Number(new URLSearchParams(search).get('size')))
+        setQty(Number(new URLSearchParams(search).get('qty')))
+        
+    }, [])
+
+    console.log(date)
+    
     const items = [
         "React", "CSS"
     ]
+
+    const submitProductionDetails = () => {
+        ProductionService.updateProductionRecord("Production",Number(id), date, Number(size), inputValue, Number(qty)).then(response => {
+            setAlert(true)
+            clearFields()
+            console.log(response)
+            setSuccessRecordId(response.data.pid)
+        }).catch(error => {
+            console.log(error.response.data.message)
+            setAlert(false)
+            swal("Error!", error.response.data.message, "error");
+        }) 
+    }
+
+    const handleKeypress = e => {
+        if (e.key === 'Enter') {
+            submitProductionDetails();
+            setVisible(false)
+        }
+    };
+
+    const clearFields = () => {
+        setDate(null)
+        setSize(null)
+        setInputValue("")
+        setQty(null)
+    }
     return (
         <div className='body mb-5 d-flex flex-column min-vh-100' style={{ overflow: 'hidden', backgroundColor: "#DAE3F3", borderRadius: "1%" }}>
-            {/* {alert ? <CAlert
+            {alert ? <CAlert
                 color="success"
                 style={{ textAlign: "center", }}
                 dismissible
                 onClose={() => setAlert(!alert)}
             >
-                Production <strong>#5752</strong> Recorded Successfully
-            </CAlert> : <div className='mb-5'></div>} */}
+                Production <strong>#PIN{successRecordId}</strong> Updated Successfully
+            </CAlert> : <div className='mb-5'></div>}
             <CRow className='mt-5'>
                 <CCol md={2}></CCol>
                 <CCol
                     className='add_header'
                     style={{ fontSize: '2em' }}
                 >
-                    Production <span style={{color: "#0072C7"}}>#5752</span> details
+                    Production <span style={{ color: "#0072C7" }}>#PIN{id}</span> details
                 </CCol>
             </CRow>
 
@@ -41,6 +91,8 @@ const EditProductionRecord = () => {
                             <CFormInput
                                 style={{ backgroundColor: '#F2F2F2' }}
                                 type="datetime-local"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
                                 id="date" />
                         </CCol>
                     </CRow>
@@ -51,6 +103,8 @@ const EditProductionRecord = () => {
                                 style={{ backgroundColor: '#F2F2F2' }}
                                 type="text"
                                 placeholder="PlyWood Size in (mm)"
+                                value={size}
+                                onChange={(e) => setSize(e.target.value)}
                                 id="size" />
                         </CCol>
                     </CRow>
@@ -109,6 +163,8 @@ const EditProductionRecord = () => {
                                 style={{ backgroundColor: '#F2F2F2' }}
                                 type="number"
                                 placeholder="How many?"
+                                value={qty}
+                                onChange={(e) => setQty(e.target.value)}
                                 autoComplete={items}
                                 id="qty" />
                         </CCol>
@@ -143,7 +199,7 @@ const EditProductionRecord = () => {
                     </p>
                     <p
                         style={{ color: '#00B050' }}>
-                        9mm LO/EVR : 25
+                        {size}mm {inputValue} : {qty}
                     </p>
                     <p
                         style={{ fontSize: '0.8em', marginBottom: "5px" }}>
@@ -155,6 +211,7 @@ const EditProductionRecord = () => {
                             style={{ backgroundColor: '#F2F2F2' }}
                             type="number"
                             autoFocus
+                            onKeyPress={handleKeypress}
                             id="qty" />
                         <CButton
                             color="danger"

@@ -1,12 +1,79 @@
 import { CButton, CCol, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CModal, CModalBody, CRow } from '@coreui/react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import CustomersServices from 'src/services/CustomersServices'
+import swal from 'sweetalert'
 
-const AddEditCustomerModel = ({visible, onClose, isEdit, values}) => {
+const AddEditCustomerModel = ({visible, onClose, isEdit, values, refreshPage}) => {
 
     const [name, setName] = useState(isEdit ? values.name : "")
     const [email, setEmail] = useState(isEdit ? values.email : "")
     const [address, setAddress] = useState(isEdit ? values.address : "")
     const [phone, setPhone] = useState(isEdit ? values.phone : "")
+
+    useEffect(() => {
+      if(isEdit) {
+        setName(values.name)
+        setEmail(values.email)
+        setAddress(values.address)
+        setPhone(values.phone)
+      } else {
+        setName("")
+        setEmail("")
+        setAddress("")
+        setPhone("")
+      }
+    
+   
+    }, [values])
+    
+
+    const addCustomer = () => {
+        
+        console.log("save")
+        if(name == "") {
+            console.log(name)
+            return
+        }
+
+        if(email == "") {
+            console.log(email)
+            return
+        }
+
+        if(address == "") {
+            console.log(address)
+            return
+        }
+
+        if(phone == "") {
+            console.log(phone)
+            return
+        }
+
+        if(isEdit) {
+            CustomersServices.updateCustomerRecord("user_page", Number(values.id), name, email, address, phone)
+            .then(response => {
+                swal("Success!", "Customer Updated Successfully", "success");
+                onClose(false)
+                refreshPage()
+            }).catch(error => {
+                console.log(error.response.data.message)
+                swal("Error!", error.response.data.message, "error");
+            }) 
+        } else {
+            CustomersServices.createNewCustomerRecord("user_page", name, email, address, phone)
+            .then(response => {
+                swal("Success!", "Customer added Successfully", "success");
+                onClose(false)
+                refreshPage()
+            }).catch(error => {
+                console.log(error.response.data.message)
+                swal("Error!", error.response.data.message, "error");
+            }) 
+        }
+
+     
+    }
     
 
     console.log(name)
@@ -56,7 +123,7 @@ const AddEditCustomerModel = ({visible, onClose, isEdit, values}) => {
                     <CButton
                         color="success"
                         style={{ color: '#fff', width: "100%" }}
-                        onClick={() => onClose(false)}>
+                        onClick={() => addCustomer()}>
                              {isEdit ? "Update" : "Save"}
                     </CButton>
                     <CButton

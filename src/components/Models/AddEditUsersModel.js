@@ -1,15 +1,108 @@
 import { CButton, CCol, CFormInput, CFormLabel, CFormSelect, CFormSwitch, CFormTextarea, CModal, CModalBody, CRow } from '@coreui/react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import Select from 'react-select'
+import UserService from 'src/services/UserService'
+import swal from 'sweetalert'
 
-const AddEditUsersModel = ({ visible, onClose, isEdit, values }) => {
+const AddEditUsersModel = ({ visible, onClose, isEdit, values, refreshPage }) => {
 
     const [name, setName] = useState(isEdit ? values.name : "")
     const [email, setEmail] = useState(isEdit ? values.email : "")
-    const [address, setAddress] = useState(isEdit ? values.address : "")
-    const [phone, setPhone] = useState(isEdit ? values.phone : "")
+    const [password, setPassword] = useState("")
+    const [role, setRole] = useState([])
+    const [isEnable, setIsEnable] = useState(isEdit ? values.active : 0)
+    useEffect(() => {
+        if (isEdit) {
+            setName(values.name)
+            setEmail(values.email)
+            const updatedRoles = values.roles.map(role => {
+                return { label: role.charAt(0).toUpperCase() + role.slice(1), value: role }
+            })
+            setRole(updatedRoles)
+            setIsEnable(values.active)
+        } else {
+            setName("")
+            setEmail("")
+            setPassword("")
+            setRole([])
+            setIsEnable(0)
+            handleIsEnable(false)
+
+        }
 
 
-    console.log(name)
+    }, [values])
+
+    const handleIsEnable = (state) => {
+        if (state) setIsEnable(1)
+        else setIsEnable(0)
+    }
+
+
+    const addUser = () => {
+
+        console.log("save")
+        if (name == "") {
+            console.log(name)
+            return
+        }
+
+        if (email == "") {
+            console.log(email)
+            return
+        }
+
+        if (role == "") {
+            console.log(role)
+            return
+        }
+
+        const updatedRoles = role.map(role => {
+            return role.value
+        })
+
+        if (isEdit) {
+          
+            UserService.updateUsersInfo("user_page", Number(values.id), name, email, password, updatedRoles, isEnable)
+                .then(response => {
+                    swal("Success!", "Customer Updated Successfully", "success");
+                    onClose(false)
+                    refreshPage()
+                }).catch(error => {
+                    console.log(error.response.data.message)
+                    swal("Error!", error.response.data.message, "error");
+                })
+        } else {
+            if (password == "") {
+                console.log(password)
+                return
+            }
+            UserService.createUsersInfo("user_page", name, email, password, updatedRoles, isEnable)
+                .then(response => {
+                    swal("Success!", "Customer added Successfully", "success");
+                    onClose(false)
+                    refreshPage()
+                }).catch(error => {
+                    console.log(error.response.data.message)
+                    swal("Error!", error.response.data.message, "error");
+                })
+        }
+
+
+    }
+
+
+
+    const handleRoles = (roleDetails) => {
+
+        const updatedRoles = roleDetails.map(role => {
+            return role.value
+        })
+
+        setRole(updatedRoles)
+    }
+    console.log(role)
+
     return (
         <CModal
             style={{ marginTop: "30%", padding: "5%" }}
@@ -26,19 +119,32 @@ const AddEditUsersModel = ({ visible, onClose, isEdit, values }) => {
                 <CRow className="mt-4">
                     <CFormLabel htmlFor="enable" className="col-sm-2 col-form-label">Enable</CFormLabel>
                     <CCol sm={10}>
-                        <CFormSwitch size="lg" id="enable" />
+                        <CFormSwitch size="lg" id="enable" checked={isEnable == 0 ? false : true} onChange={(e) => handleIsEnable(e.target.checked)} />
 
                     </CCol>
                 </CRow>
                 <CRow className="mt-4">
                     <CFormLabel htmlFor="role" className="col-sm-2 col-form-label">Role *</CFormLabel>
                     <CCol sm={10}>
-                        <CFormSelect aria-label="Default select example">
-                            <option>Select the role</option>
-                            <option value="1">Admin</option>
-                            <option value="2">Moderator</option>
-                            <option value="3" disabled>Other</option>
-                        </CFormSelect>
+                        <Select
+                            isMulti
+                            aria-label="Default select example"
+                            id="inputState"
+                            name="features"
+                            label="features"
+                            onChange={(e) => setRole(e)}
+                            value={role}
+                            options={
+                                [
+                                    { label: "User", value: "user" },
+                                    { label: "Admin", value: "admin" },
+                                    { label: "Moderator", value: "moderator" },
+                                    { label: "Other", value: "other" }
+                                ]
+                            }
+                        // onChange={(e) => handlePersonas(e)}
+                        ></Select>
+
 
                     </CCol>
                 </CRow>
@@ -57,9 +163,9 @@ const AddEditUsersModel = ({ visible, onClose, isEdit, values }) => {
                     </CCol>
                 </CRow>
                 <CRow className="mt-4">
-                    <CFormLabel htmlFor="phone" className="col-sm-2 col-form-label">Phone</CFormLabel>
+                    <CFormLabel htmlFor="password" className="col-sm-2 col-form-label">Password</CFormLabel>
                     <CCol sm={10}>
-                        <CFormInput id="phone" type='text' value={phone} onChange={(e) => setPhone(e.target.value)} />
+                        <CFormInput id="password" type='password' value={password} onChange={(e) => setPassword(e.target.value)} />
 
                     </CCol>
                 </CRow>
@@ -68,7 +174,7 @@ const AddEditUsersModel = ({ visible, onClose, isEdit, values }) => {
                     <CButton
                         color="success"
                         style={{ color: '#fff', width: "100%" }}
-                        onClick={() => onClose(false)}>
+                        onClick={() => addUser()}>
                         {isEdit ? "Update" : "Save"}
                     </CButton>
                     <CButton
