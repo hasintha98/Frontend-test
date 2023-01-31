@@ -1,23 +1,19 @@
 import { CButton, CFormInput, CModal, CModalBody } from '@coreui/react'
 import React, { useEffect, useRef, useState } from 'react'
+import UserService from 'src/services/UserService'
 
 const RecordDeleteModel = ({ visible, onClose, recordId }) => {
     const [pin, setPin] = useState("")
     const authenticatePin = () => {
-        if (pin == "1234") {
+
+        UserService.modAdminAuthPin(["admin"], pin)
+        .then(response => {
             onClose(false, "AUTHENTICATED")
-        } else {
-            // setIcon(
-            //     <span 
-            //     style={{ fontSize: '5em', color: 'red' }}
-            //     className="material-symbols-outlined">
-            //         close
-            //     </span>
-            // )
-            // setPrimaryMessage("Pin Invalid!")
-            // setErrorMessage("You’re not authorized to alter this action.")
-            // setSecondaryMessage('To retry please enter admin pin code and press Enter key')
-        }
+        }).catch(error => {
+         
+        
+        })
+       
     }
 
     const pinInput = useRef(null);
@@ -63,7 +59,7 @@ const RecordDeleteModel = ({ visible, onClose, recordId }) => {
                     className='d-grid gap-2 d-md-flex justify-content-md-center'>
                     <CFormInput
                         style={{ backgroundColor: '#F2F2F2' }}
-                        type="number"
+                        type="password"
                         autoFocus
                         onChange={(e) => setPin(e.target.value)}
                         value={pin}

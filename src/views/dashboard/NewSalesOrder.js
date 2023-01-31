@@ -1,9 +1,20 @@
-import { CButton, CCol, CForm, CFormInput, CFormLabel, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
-import React, { useState } from 'react'
+import { CButton, CCol, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import CustomersServices from 'src/services/CustomersServices';
+import PlyWoodTypesServices from 'src/services/PlyWoodTypesServices';
+import SalesOrderServices from 'src/services/SalesOrderServices';
+import swal from 'sweetalert';
+import SalesOrder from './SalesOrder';
 
 const NewSalesOrder = () => {
     const navigate = useNavigate();
+
+    const [customerName, setCustomerName] = useState("")
+    const [deliveryDate, setDeliveryDate] = useState(new Date())
+    const [orderDate, setOrderDate] = useState(new Date())
+    const [deliveryMethod, setDeliveryMethod] = useState("")
+    const [note, setNote] = useState("")
 
     const [itemDetails, setItemDetails] = useState("")
     const [qty, setQty] = useState(0)
@@ -12,38 +23,136 @@ const NewSalesOrder = () => {
     const [tax, setTax] = useState(0)
     const [amount, setAmount] = useState("")
     const [deliveryCharge, setDeliveryCharge] = useState(1000)
+    const [customerList, setCustomerList] = useState([])
+
+    const [orderExtraCharge, setOrderExtraCharge] = useState(0)
 
     const [items, setItems] = useState([])
 
+    const [plywoodList, setPlywoodList] = useState([])
+
+    useEffect(() => {
+        getCustomerList()
+        getPlyWoodTypes()
+    }, [])
+
+    const getCustomerList = () => {
+        CustomersServices.getAllCustomersInfo("user_page", 0, 10, "")
+            .then(response => {
+                const { customersList, totalPages } = response.data;
+
+                //console.log("testing -> ", customersList);
+                var customersFinal = [];
+                var customersEdited = [];
+                var cash_customer = {};
+                if (customersList.length) {
+                    var revCustomersList = customersList;//.reverse();
+
+                    for (let i = 0; i < revCustomersList.length; i++) {
+                        var crr_customer = revCustomersList[i];
+
+                        if (crr_customer.id === 1) {
+                            cash_customer = crr_customer;
+                        } else {
+                            customersEdited.push(crr_customer);
+                        }
+                    }
+
+                    customersFinal.push(cash_customer);
+
+                    for (let i = 0; i < customersEdited.length; i++) {
+                        var crr_customerX = customersEdited[i];
+
+                        customersFinal.push(crr_customerX);
+                    }
+                    setCustomerList(customersFinal);
+                }
+            })
+    }
+
+    const getPlyWoodTypes = () => {
+        PlyWoodTypesServices.getPlyWoodTypesListAll("dash_page", "dash_page")
+            .then(response => {
+                const filteredArray = response.data.plyWoodsInfoAll.map(item => {
+                    return { id: item.id, label: `${item.type} - ${item.size}mm`, type: item.type, size: item.size }
+                })
+                setPlywoodList(filteredArray)
+            })
+
+    }
+
+    console.log(plywoodList)
+
+    const handlePlyWoodType = (id) => {
+        const item = plywoodList.find(obj => obj.id === Number(id));
+        setItemDetails(item)
+
+        //    setPlywoodList(oldValues => {
+        //     return oldValues.filter(item => item.id !== Number(id))
+        //   })
+    }
+
+
     const handleTableItemSubmit = () => {
-        if(!itemDetails) {
+        if (!itemDetails) {
             return
         }
 
-        if(qty <= 0) {
+        if (qty <= 0) {
             return
         }
 
-        if(rate <= 0) {
+        if (rate <= 0) {
             return
         }
         const total = (parseFloat(qty) * parseFloat(rate)) - (parseFloat(qty) * parseFloat(rate) * parseFloat(discount)) / 100 + (parseFloat(qty) * parseFloat(rate) * parseFloat(tax)) / 100
-        
+
         setItems([...items, {
-            itemDetails: itemDetails,
+            type: itemDetails.type,
             qty: parseFloat(qty),
-            rate: parseFloat(rate),
-            discount: parseFloat(discount),
-            tax: parseFloat(tax),
-            amount: parseFloat(total)
+            size: parseFloat(itemDetails.size),
+            rates: parseFloat(rate),
+            discounts: parseFloat(discount),
+            taxes: parseFloat(tax),
+            total: parseFloat(total)
         }])
+        setPlywoodList(oldValues => {
+            return oldValues.filter(item => item.id !== Number(itemDetails.id))
+        })
         clearFields()
     }
 
+    console.log(items)
+
+    const handleOrderSubmit = () => {
+        if (customerName == "") {
+            return
+        }
+
+        if (deliveryMethod == "") {
+
+        }
+
+        SalesOrderServices.createNewSalesOrder("user_page", orderDate, deliveryDate, deliveryMethod, subTotal, deliveryCharge, orderExtraCharge, note, customerName, items)
+            .then(response => {
+                console.log(response)
+                
+                //swal("Success!", error.response.data.message, "error");
+                swal("Success!", "Sales Order Created Successfully", "success").then((value) => {
+                    navigate('/sales')
+                  });
+            }).catch(error => {
+                console.log(error.response.data.message)
+                swal("Error!", error.response.data.message, "error");
+            })
+
+    }
+
+
     const handleTableItemDelete = (key) => {
 
-        if(key > -1) {
-            setItems(items=> items.filter((s,i)=>(i != key)))
+        if (key > -1) {
+            setItems(items => items.filter((s, i) => (i != key)))
         }
     }
 
@@ -58,7 +167,7 @@ const NewSalesOrder = () => {
     console.log(items)
     let subTotal = 0
     items.forEach(item => {
-        subTotal = parseFloat(subTotal) + parseFloat(item.amount)
+        subTotal = parseFloat(subTotal) + parseFloat(item.total)
     })
     const total = (subTotal - parseFloat(deliveryCharge)) < 0 ? 0 : subTotal - parseFloat(deliveryCharge)
 
@@ -76,7 +185,12 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="Qty" className="col-sm-3 col-form-label">Customer Name *</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput id="Qty" aria-label="Default select example" />
+                            <CFormSelect onChange={(e) => setCustomerName(e.target.value)} aria-label="Default select example">
+                                <option>- Select a customer -</option>
+                                {customerList.map((item, index) => (
+                                    <option key={index} value={item.id}>{item.name}</option>
+                                ))}
+                            </CFormSelect>
                         </CCol>
                     </CRow>
                 </CCol>
@@ -104,7 +218,7 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="delivery-date" className="col-sm-3 col-form-label">Delivery Date</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput type="date" id="delivery-date" aria-label="Default select example" />
+                            <CFormInput type="date" id="delivery-date" aria-label="Default select example" onChange={(e) => setDeliveryDate(e.target.value)} />
                         </CCol>
                     </CRow>
                 </CCol>
@@ -114,7 +228,7 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="date" className="col-sm-3 col-form-label">Sales Order Date *</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput type="date" id="date" aria-label="Default select example" />
+                            <CFormInput type="date" id="date" aria-label="Default select example" onChange={(e) => setOrderDate(e.target.value)} />
                         </CCol>
                     </CRow>
                 </CCol>
@@ -122,7 +236,7 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="Qty" className="col-sm-3 col-form-label">Delivery Method</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput id="Qty" aria-label="Default select example" />
+                            <CFormInput id="Qty" aria-label="Default select example" onChange={(e) => setDeliveryMethod(e.target.value)} />
                         </CCol>
                     </CRow>
                 </CCol>
@@ -145,15 +259,15 @@ const NewSalesOrder = () => {
                     </CTableHead>
                     <CTableBody>
 
-                
+
                         {items?.map((item, key) => (
                             <CTableRow key={key}>
-                                <CTableDataCell className='text-center'>{item.itemDetails}</CTableDataCell>
+                                <CTableDataCell className='text-center'>{item.type} - {item.size}mm</CTableDataCell>
                                 <CTableDataCell className='text-center'>{item.qty}</CTableDataCell>
-                                <CTableDataCell className='text-center'>{item.rate}</CTableDataCell>
-                                <CTableDataCell className='text-center'>{item.discount} %</CTableDataCell>
-                                <CTableDataCell className='text-center'>{item.tax} %</CTableDataCell>
-                                <CTableDataCell className='text-center' width={250}>LKR {Number(item.amount).toFixed(2)}</CTableDataCell>
+                                <CTableDataCell className='text-center'>{item.rates}</CTableDataCell>
+                                <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
+                                <CTableDataCell className='text-center'>{item.taxes} %</CTableDataCell>
+                                <CTableDataCell className='text-center' width={250}>LKR {Number(item.total).toFixed(2)}</CTableDataCell>
                                 <CTableDataCell className='text-center' width={5} onClick={() => handleTableItemDelete(key)}>
                                     <span className="material-symbols-outlined" style={{ cursor: "pointer" }}>
                                         delete
@@ -162,19 +276,25 @@ const NewSalesOrder = () => {
                         ))}
                         <CTableRow>
                             <CTableDataCell className='text-center'>
-                                <CFormInput style={{textAlign: 'center'}} type='text' className='no-border-input' value={itemDetails} onChange={(e) => setItemDetails(e.target.value)} placeholder="Type or click to select an item" required />
+                                <CFormSelect onChange={(e) => handlePlyWoodType(e.target.value)} value={itemDetails} aria-label="Default select example">
+                                    <option>Type or click to select an item</option>
+                                    {plywoodList.map((item, index) => (
+                                        <option key={index} value={item.id}>{item.label}</option>
+                                    ))}
+                                </CFormSelect>
+                                {/* <CFormInput style={{ textAlign: 'center' }} type='text' className='no-border-input' value={itemDetails} onChange={(e) => setItemDetails(e.target.value)} placeholder="Type or click to select an item" required /> */}
                             </CTableDataCell>
                             <CTableDataCell className='text-center'>
-                                <CFormInput style={{textAlign: 'center'}} type='number' step="0.01" className='no-border-input' value={qty} onChange={(e) => setQty(e.target.value)} required/>
+                                <CFormInput style={{ textAlign: 'center' }} type='number' step="0.01" className='no-border-input' value={qty} onChange={(e) => setQty(e.target.value)} required />
                             </CTableDataCell>
                             <CTableDataCell className='text-center'>
-                                <CFormInput style={{textAlign: 'center'}} type='number' step="0.01" className='no-border-input' value={rate} onChange={(e) => setRate(e.target.value)} required/>
+                                <CFormInput style={{ textAlign: 'center' }} type='number' step="0.01" className='no-border-input' value={rate} onChange={(e) => setRate(e.target.value)} required />
                             </CTableDataCell>
                             <CTableDataCell className='text-center'>
-                                <CFormInput style={{textAlign: 'center'}} type='number' step="0.01" className='no-border-input' value={discount} onChange={(e) => setDiscount(e.target.value)} required/>
+                                <CFormInput style={{ textAlign: 'center' }} type='number' step="0.01" className='no-border-input' value={discount} onChange={(e) => setDiscount(e.target.value)} required />
                             </CTableDataCell>
                             <CTableDataCell className='text-center'>
-                                <CFormInput style={{textAlign: 'center'}} type='number' step="0.01" className='no-border-input' value={tax} onChange={(e) => setTax(e.target.value)} required/>
+                                <CFormInput style={{ textAlign: 'center' }} type='number' step="0.01" className='no-border-input' value={tax} onChange={(e) => setTax(e.target.value)} required />
                             </CTableDataCell>
                             <CTableDataCell className='text-center' width={250}>
 
@@ -200,7 +320,7 @@ const NewSalesOrder = () => {
                                     id="exampleFormControlTextarea1"
                                     label="Notes"
                                     rows={3}
-
+                                    onChange={(e) => setNote(e.target.value)}
                                 ></CFormTextarea>
                             </CForm>
                         </CRow>
@@ -246,7 +366,7 @@ const NewSalesOrder = () => {
                             role="button"
                             color='success'
                             style={{ width: "100%", color: '#fff' }}
-                            onClick={() => navigate('/sales/view?id=6546')}
+                            onClick={handleOrderSubmit}
                         >Save</CButton>
                     </CCol>
                     <CCol md={2}>

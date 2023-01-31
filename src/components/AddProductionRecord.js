@@ -2,6 +2,7 @@ import { CAlert, CButton, CCol, CFormInput, CFormLabel, CModal, CModalBody, CRow
 import React, { useRef, useState } from 'react'
 import ProductionService from 'src/services/ProductionService'
 import RawMaterialService from 'src/services/RawMaterialService'
+import UserService from 'src/services/UserService'
 import Production from 'src/views/dashboard/Production'
 import swal from 'sweetalert'
 
@@ -18,6 +19,8 @@ const AddProductionRecord = () => {
     const [size, setSize] = useState(null)
     const [type, setType] = useState("")
     const [qty, setQty] = useState(null)
+
+    const [pin, setPin] = useState("")
 
 
     const inputRef = useRef()
@@ -64,10 +67,23 @@ const AddProductionRecord = () => {
         }) 
     }
 
-    const handleKeypress = e => {
-        if (e.key === 'Enter') {
+    const authenticatePin = () => {
+
+        UserService.modAdminAuthPin(["admin"], pin)
+        .then(response => {
             submitProductionDetails();
             setVisible(false)
+        }).catch(error => {
+           
+        
+        })
+          
+     
+    }
+
+    const handleKeypress = e => {
+        if (e.key === 'Enter') {
+            authenticatePin()
         }
     };
 
@@ -223,8 +239,10 @@ const AddProductionRecord = () => {
                         className='d-grid gap-2 d-md-flex justify-content-md-center'>
                         <CFormInput
                             style={{ backgroundColor: '#F2F2F2' }}
-                            type="number"
+                            type="password"
                             autoFocus
+                            value={pin}
+                            onChange={(e) => setPin(e.target.value)}
                             onKeyPress={handleKeypress}
                             id="qty" />
                         <CButton

@@ -16,7 +16,7 @@ const PlyWood = () => {
     const [deleteVisible, setDeleteVisible] = useState(false)
     const [updateVisible, setUpdateVisible] = useState(false)
     const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(3);
+    const [pageSize, setPageSize] = useState(10);
     const pageSizes = [10, 15, 20];
     const [plyWoodTypeList, setPlyWoodTypeList] = useState([]);
     const [deleteItem, setDeleteItem] = useState(null)
@@ -41,7 +41,7 @@ const PlyWood = () => {
 
     useEffect(() => {
         retrievePlyWoodTypeList()
-    }, [page, pageSize, updateOnRefReshPage])
+    }, [page, pageSize, updateOnRefReshPage, refreshPage])
     const onChangeSearchTitle_Type = (e) => {
         const searchTitle = e.target.value;
         setSearchTitle_Type(searchTitle);
@@ -490,7 +490,7 @@ const PlyWood = () => {
                 onClose={(val) => setUpdateVisible(val)}
                 product={selectedProduct}
                 isAdding={modelIsAdding}
-                refreshPage={refreshPage}
+                refreshPage={() => setRefreshPage(!refreshPage)}
                 type={"plywood"} />
             <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
         </>

@@ -151,7 +151,7 @@ const deletePlyWoodTypesRecord = async (page_name, id) => {
 
   if (page_name === "user_page") {
     const response = await axios.post(
-      "http://localhost:3000/api/plyWoodTypes/deletePlyWoodTypeByIdS",
+      "http://localhost:5000/api/plyWoodTypes/deletePlyWoodTypeByIdS",
       data
     );
 

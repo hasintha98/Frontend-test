@@ -1,6 +1,7 @@
 import { CButton, CFormInput, CModal, CModalBody } from '@coreui/react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import UserService from 'src/services/UserService'
 
 const PinRequiredModel = ({ visible, onClose }) => {
 
@@ -18,9 +19,11 @@ const PinRequiredModel = ({ visible, onClose }) => {
 
     const navigate = useNavigate()
     const authenticatePin = () => {
-        if (pin == "1234") {
+
+        UserService.modAdminAuthPin(["admin"], pin)
+        .then(response => {
             onClose(false)
-        } else {
+        }).catch(error => {
             setIcon(
                 <span 
                 style={{ fontSize: '5em', color: 'red' }}
@@ -31,7 +34,10 @@ const PinRequiredModel = ({ visible, onClose }) => {
             setPrimaryMessage("Pin Invalid!")
             setErrorMessage("You’re not authorized to alter this action.")
             setSecondaryMessage('To retry please enter admin pin code and press Enter key')
-        }
+        
+        })
+          
+     
     }
 
     const pinInput = useRef(null);

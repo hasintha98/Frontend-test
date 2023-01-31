@@ -221,7 +221,7 @@ const Customers = () => {
                 </CCol>
                 <CCol md={3} >
                     <CInputGroup >
-                        <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search here' />
+                        <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search here' onChange={onChangeSearchTitle_Telephone} />
                         <CInputGroupText className='default-border'>
                             <span className="material-symbols-outlined"
                                 style={{ cursor: 'pointer' }}

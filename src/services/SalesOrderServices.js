@@ -185,6 +185,33 @@ const getSalesList = async (
 };
 
 
+const getSalesById = async (
+  page_name,
+  id
+) => {
+  //console.log(" create new Sales Order calling.. by ", page_name);
+
+  var data = {
+    page: page_name,
+    ids: id
+  };
+
+  if (page_name === "user_page") {
+    const response = await axios.post(
+      AppConfigData.Backend_Url + "/sales/getSalesOrderListSelected",
+      data
+    );
+
+    return response;
+  } else {
+    const response = Api.post("/sales/getSalesOrderListSelected", data);
+
+    return response;
+  }
+};
+
+
+
 const exportSalesOrdersTimePeriod  = async (
   page_name,
 
@@ -228,6 +255,7 @@ const SalesOrderServices = {
   updateSalesOrderStatus,
   deleteSalesOrders,
   getSalesList,
+  getSalesById,
   exportSalesOrdersTimePeriod,
 };
 

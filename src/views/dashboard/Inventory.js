@@ -17,8 +17,8 @@ const Inventory = () => {
   const search = useLocation().search
   const type = new URLSearchParams(search).get('type')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(3);
-  const pageSizes = [3, 5, 10];
+  const [pageSize, setPageSize] = useState(10);
+  const pageSizes = [10, 25, 50];
   const [rawMaterialList, setRawMaterialList] = useState([]);
   const [count, setCount] = useState(0);
   const [updateOnRefReshPage, setUpdateOnRefreshPage] = useState(0);
@@ -42,7 +42,7 @@ const Inventory = () => {
 
   useEffect(() => {
     retrieveRawMaterialList()
-  }, [page, pageSize, updateOnRefReshPage])
+  }, [page, pageSize, updateOnRefReshPage, refreshPage])
 
   const onChangeSearchTitle = (e) => {
     const searchTitle = e.target.value;
@@ -433,7 +433,7 @@ const Inventory = () => {
         onClose={(val) => setUpdateVisible(val)}
         product={selectedProduct}
         isAdding={modelIsAdding}
-        refreshPage={refreshPage}
+        refreshPage={() => setRefreshPage(!refreshPage)}
         type={"raw"} />
       <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
     </>

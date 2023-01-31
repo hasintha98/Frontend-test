@@ -1,12 +1,78 @@
 import { CButton, CButtonGroup, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CForm, CFormInput, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
+import InvoiceServices from 'src/services/InvoiceService';
+import SalesOrderServices from 'src/services/SalesOrderServices';
+import swal from 'sweetalert';
 
 const NewInvoice = () => {
     const navigate = useNavigate();
     const search = useLocation().search
     const orderId = new URLSearchParams(search).get('id')
-    console.log(orderId)
+    const [itemList, setItemList] = useState([])
+    const [salesOrder, setSalesOrder] = useState(null)
+    const [totalAmount, setTotalAmount] = useState(0)
+
+    const [subAmount, setSubAmount] = useState(0)
+
+    const [notes, setNotes] = useState("")
+
+    const [invoiceDate, setInvoiceDate] = useState(new Date().toLocaleDateString('en-CA'))
+    useEffect(() => {
+        SalesOrderServices.getSalesList("dash_page", 0, 10, "", null, null, 0)
+            .then(response => {
+                const item = response.data.salesList.find(obj => obj.id === Number(orderId));
+                console.log(item)
+                // setTotalAmount(parseFloat(item.order_sub_chargers) - parseFloat(item.order_delivery_chargers))
+                setSalesOrder(item)
+                setItemList(item.Orders_Items_TBs)
+
+            })
+            .catch(error => {
+                swal("Error!", error.response.message, "error")
+                console.log(error.response.message)
+            })
+
+
+    }, [])
+
+    const handleQTY = (qty, id, itemDetails) => {
+        console.log(qty, id)
+        let subTotal = 0
+        const newList = itemList.map(item => {
+            if (item.id === id) {
+                item.sub_rates = qty * parseFloat(item.rates)
+                item.total = parseFloat(item.sub_rates) - (parseFloat(item.sub_rates) * parseFloat(item.discounts)) / 100 + (parseFloat(item.sub_rates) * parseFloat(item.taxes)) / 100
+            }
+            subTotal = parseFloat(subTotal) + parseFloat(item.total)
+            item.new_rates = 0
+            item.order_item_id = id
+            item.qty_to_invoice = qty
+            item.item_details = itemDetails
+            return item
+        })
+
+        console.log(newList)
+        setItemList(newList)
+        setSubAmount(subTotal)
+        setTotalAmount(subTotal + parseFloat(salesOrder.order_delivery_chargers))
+    }
+
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    const createInvoice = () => {
+        InvoiceServices.createNewInvoice("user_page", Number(orderId), invoiceDate, notes, subAmount, salesOrder?.order_delivery_chargers, totalAmount, itemList)
+            .then(response => {
+                swal("Success!", "Invoice Created Successfully", "success").then((value) => {
+                    navigate(`/sales/view?id=${orderId}`)
+                });
+            })
+            .catch(error => {
+                swal("Error!", error.response.data.message, "error")
+            })
+    }
     return (
         <>
             <CRow style={{ overflow: 'hidden' }}>
@@ -23,7 +89,7 @@ const NewInvoice = () => {
 
                             color='secondary'
                             style={{ width: "100%", backgroundColor: '#D9D9D9' }}
-                            onClick={() => navigate('/sales/view?id=6546')}
+                            onClick={() => navigate(`/sales/view?id=${orderId}`)}
                         ><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                                 arrow_back
                             </span>{' '}Back</CButton>
@@ -45,7 +111,7 @@ const NewInvoice = () => {
                         <CRow>
                             <CCol>
                                 <p style={{ fontSize: "2.5em", fontWeight: "bold", padding: 0, margin: 0 }}>New Invoice</p>
-                                <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# {orderId}</p>
+                                <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# SOP{salesOrder?.sop}</p>
                             </CCol>
 
 
@@ -55,9 +121,9 @@ const NewInvoice = () => {
                 <CRow className='mt-5'>
                     <CCol md={3} >
                         <p style={{ fontWeight: 'bold' }}>Bill To:</p>
-                        <p>John Doe, </p>
-                        <p>Homagama, </p>
-                        <p>+94 77 045 1234</p>
+                        <p>{salesOrder?.Customers_Data_TB.name}, </p>
+                        <p>{salesOrder?.Customers_Data_TB.address} </p>
+                        <p>{salesOrder?.Customers_Data_TB.phone}</p>
                     </CCol>
 
                 </CRow>
@@ -66,7 +132,7 @@ const NewInvoice = () => {
                         <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Invoice Date </span></span>
                     </CCol>
                     <CCol md={2}>
-                        <CFormInput type="date" defaultValue={new Date().toLocaleDateString('en-CA')} />
+                        <CFormInput type="date" defaultValue={new Date().toLocaleDateString('en-CA')} onChange={(e) => setInvoiceDate(e.target.value)} />
                     </CCol>
 
 
@@ -91,39 +157,27 @@ const NewInvoice = () => {
                             </CTableRow>
                         </CTableHead>
                         <CTableBody>
+                            {itemList?.map((item, index) => (
+                                <CTableRow key={index} >
+                                    <CTableDataCell className='text-center'>{item.type} - {item.size}mm</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{numberWithCommas(Number(item.rates).toFixed(2))}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>
+                                        {item.qty_ordered ? <p>Ordered <br />{item.qty_ordered}</p> : null}
+                                        {item.qty_invoiced ? <p>Invoiced <br />{item.qty_invoiced}</p> : null}
+                                        {item.qty_shipped ? <p>Shipped <br />{item.qty_shipped}</p> : null}
+                                        {item.qty_returned ? <p>Returned <br />{item.qty_returned}</p> : null}
+                                    </CTableDataCell>
+                                    <CTableDataCell className='text-center'>
+                                        <CFormInput type="number" max={item.qty_ordered} onChange={(e) => handleQTY(e.target.value, item.id, `${item.type} - ${item.size}mm`)} />
+                                    </CTableDataCell>
+                                    <CTableDataCell className='text-center'>{numberWithCommas(Number(item?.sub_rates ? item?.sub_rates : 0).toFixed(2))}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.taxes} %</CTableDataCell>
+                                    <CTableDataCell className='text-center'>Rs.{numberWithCommas(Number(item?.total ? item?.total : 0).toFixed(2))}</CTableDataCell>
 
-                            <CTableRow >
-                                <CTableDataCell className='text-center'>OK-G1</CTableDataCell>
-                                <CTableDataCell className='text-center'>5400.00</CTableDataCell>
-                                <CTableDataCell className='text-center'>
-                                    <p>Ordered 200</p>
-                                    <p>Shipped 175</p>
-                                </CTableDataCell>
-                                <CTableDataCell className='text-center'>
-                                    <CFormInput type="number" />
-                                </CTableDataCell>
-                                <CTableDataCell className='text-center'>1,166,400.00</CTableDataCell>
-                                <CTableDataCell className='text-center'>0 %</CTableDataCell>
-                                <CTableDataCell className='text-center'>8 %</CTableDataCell>
-                                <CTableDataCell className='text-center'>1,020,600.00</CTableDataCell>
+                                </CTableRow>
+                            ))}
 
-                            </CTableRow>
-                            <CTableRow >
-                                <CTableDataCell className='text-center'>OK-G1</CTableDataCell>
-                                <CTableDataCell className='text-center'>5400.00</CTableDataCell>
-                                <CTableDataCell className='text-center'>
-                                    <p>Ordered 200</p>
-                                    <p>Shipped 175</p>
-                                </CTableDataCell>
-                                <CTableDataCell className='text-center'>
-                                    <CFormInput type="number" />
-                                </CTableDataCell>
-                                <CTableDataCell className='text-center'>1,166,400.00</CTableDataCell>
-                                <CTableDataCell className='text-center'>0 %</CTableDataCell>
-                                <CTableDataCell className='text-center'>8 %</CTableDataCell>
-                                <CTableDataCell className='text-center'>1,020,600.00</CTableDataCell>
-
-                            </CTableRow>
                         </CTableBody>
                     </CTable>
 
@@ -132,23 +186,24 @@ const NewInvoice = () => {
                 <CRow>
                     <CCol md={6}>
                         <CButton color="secondary" variant="outline">Update Qty&apos;s {' '}
-                        <span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
-                            sync
-                        </span></CButton>
+                            <span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+                                sync
+                            </span></CButton>
                         <p className='mt-5'>Notes:</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                            labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                            laboris nisi ut aliquip ex ea commodo consequat.</p>
-                    
+                        <CFormTextarea
+                            id="exampleFormControlTextarea1"
+                            rows={3}
+                            onChange={(e) => setNotes(e.target.value)}
+                        ></CFormTextarea>
 
                     </CCol>
-                    <CCol style={{ textAlign: 'end'}} >
-                    <CRow className='mt-2'>
+                    <CCol style={{ textAlign: 'end' }} >
+                        <CRow className='mt-2'>
                             <CCol>
                                 <span className='ms-5'>Sub Total</span>
                             </CCol>
                             <CCol>
-                                <span className='ms-5'>1,224,720.00</span>
+                                <span className='ms-5'>{numberWithCommas(Number(subAmount).toFixed(2))}</span>
                             </CCol>
 
                         </CRow>
@@ -157,22 +212,22 @@ const NewInvoice = () => {
                                 <span className='ms-5'>Delivery Chargers</span>
                             </CCol>
                             <CCol>
-                                <span className='ms-5'>10,000.00</span>
+                                <span className='ms-5'>{numberWithCommas(Number(salesOrder?.order_delivery_chargers).toFixed(2))}</span>
                             </CCol>
                         </CRow>
-                      
+
                         <CRow className='mt-4'>
                             <CCol >
                                 <span style={{ fontWeight: 'bold' }}>Total (LKR)</span>
                             </CCol>
                             <CCol>
-                                <span style={{ fontWeight: 'bold' }}>1,181,400.00</span>
+                                <span style={{ fontWeight: 'bold' }}>{numberWithCommas(Number(totalAmount).toFixed(2))}</span>
                             </CCol>
                         </CRow>
                         <CButton
                             color="success"
                             style={{ color: '#fff', width: "30%", marginTop: '50px' }}
-                        // onClick={() => onClose(false)}
+                            onClick={createInvoice}
                         >
                             Submit Invoice
                         </CButton>

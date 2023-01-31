@@ -1,19 +1,39 @@
 import { CButton, CButtonGroup, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CFormInput, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
-import React, { useRef } from 'react'
+import moment from 'moment';
+import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
+import SalesOrderServices from 'src/services/SalesOrderServices';
 const ViewSalesOrder = () => {
     const navigate = useNavigate();
     const search = useLocation().search
-    const orderId = new URLSearchParams(search).get('id')
+    const orderId = new URLSearchParams(search).get('sop')
+    const id = new URLSearchParams(search).get('id')
+    const [salesOrder, setSalesOrder] = useState(null)
     console.log(orderId)
+
+    const [totalAmount, setTotalAmount] = useState(0)
 
     const componentRef = useRef();
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
     });
 
-
+    useEffect(() => {
+      SalesOrderServices.getSalesList("dash_page", 0,10,"", null, null , 0)
+      .then(response => {
+        const item = response.data.salesList.find(obj => obj.id === Number(id));
+        setTotalAmount(parseFloat(item.order_sub_chargers) - parseFloat(item.order_delivery_chargers))
+        setSalesOrder(item)
+        console.log(item)
+      })
+    
+    
+    }, [])
+    
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
     return (
         <>
             <CRow style={{ overflow: 'hidden' }}>
@@ -77,7 +97,7 @@ const ViewSalesOrder = () => {
 
                             color='secondary'
                             style={{ width: "100%", backgroundColor: '#D9D9D9' }}
-                            onClick={() => navigate('/invoices/new?id=6546')}
+                            onClick={() => navigate(`/invoices/new?id=${id}`)}
                         >Invoice</CButton>
                     </CButtonGroup>
 
@@ -129,13 +149,13 @@ const ViewSalesOrder = () => {
                     <CRow className='mt-5'>
                         <CCol>
                             <p style={{ fontWeight: 'bold' }}>Bill To:</p>
-                            <p>John Doe, </p>
-                            <p>Homagama, </p>
-                            <p>+94 77 045 1234</p>
+                            <p>{salesOrder?.Customers_Data_TB.name}, </p>
+                            <p>{salesOrder?.Customers_Data_TB.address} </p>
+                            <p>{salesOrder?.Customers_Data_TB.phone}</p>
                         </CCol>
                     </CRow>
                     <CRow >
-                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Order Date </span>: 22/12/2021</span>
+                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Order Date </span>: {moment(salesOrder?.order_date).format('YYYY-MM-DD')}</span>
                     </CRow>
 
                     {/* Table */}
@@ -145,7 +165,7 @@ const ViewSalesOrder = () => {
                             <CTableHead>
                                 <CTableRow style={{ backgroundColor: '#000', color: '#fff' }}>
                                     <CTableHeaderCell scope="col" className='text-center' width={400}>Item Details</CTableHeaderCell>
-                                    <CTableHeaderCell scope="col" className='text-center'>Item Status</CTableHeaderCell>
+                                    <CTableHeaderCell scope="col" className='text-center' width={100}>Item Status</CTableHeaderCell>
                                     <CTableHeaderCell scope="col" className='text-center' width={150}>Quantity</CTableHeaderCell>
                                     <CTableHeaderCell scope="col" className='text-center' width={150}>Rate</CTableHeaderCell>
                                     <CTableHeaderCell scope="col" className='text-center' width={80}>Discount</CTableHeaderCell>
@@ -155,33 +175,24 @@ const ViewSalesOrder = () => {
                                 </CTableRow>
                             </CTableHead>
                             <CTableBody>
+                            {salesOrder?.Orders_Items_TBs.map((item,index) => (
+                                 <CTableRow key={index}>
+                                 <CTableDataCell className='text-center'>{item.type} - {item.size}mm</CTableDataCell>
+                                 <CTableDataCell className='text-center'>{item.item_status == 0 ? "Pending" : item.item_status == 1 ? "Delivered" : "Canceled" }</CTableDataCell>
+                                 <CTableDataCell className='text-center'>
+                                     {item.qty_ordered ? <p>Ordered <br />{item.qty_ordered}</p> : null }
+                                     {item.qty_invoiced ? <p>Invoiced <br />{item.qty_invoiced}</p> : null }
+                                     {item.qty_shipped ? <p>Shipped <br />{item.qty_shipped}</p> : null }
+                                     {item.qty_returned ? <p>Returned <br />{item.qty_returned}</p> : null }
+                                 </CTableDataCell>
+                                 <CTableDataCell className='text-center'>{numberWithCommas(Number(item.rates).toFixed(2))}</CTableDataCell>
+                                 <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
+                                 <CTableDataCell className='text-center'>{item.taxes} %</CTableDataCell>
+                                 <CTableDataCell className='text-center'>{numberWithCommas(Number(item.total).toFixed(2))}</CTableDataCell>
 
-                                <CTableRow >
-                                    <CTableDataCell className='text-center'>OK-G1</CTableDataCell>
-                                    <CTableDataCell className='text-center'>Partial</CTableDataCell>
-                                    <CTableDataCell className='text-center'>
-                                        <p>Ordered 200</p>
-                                        <p>Shipped 200</p>
-                                    </CTableDataCell>
-                                    <CTableDataCell className='text-center'>5400.00</CTableDataCell>
-                                    <CTableDataCell className='text-center'>0 %</CTableDataCell>
-                                    <CTableDataCell className='text-center'>8 %</CTableDataCell>
-                                    <CTableDataCell className='text-center'>1,166,400.00</CTableDataCell>
-
-                                </CTableRow>
-                                <CTableRow >
-                                    <CTableDataCell className='text-center'>OK-G1</CTableDataCell>
-                                    <CTableDataCell className='text-center'>Partial</CTableDataCell>
-                                    <CTableDataCell className='text-center'>
-                                        <p>Ordered 200</p>
-                                        <p>Shipped 200</p>
-                                    </CTableDataCell>
-                                    <CTableDataCell className='text-center'>5400.00</CTableDataCell>
-                                    <CTableDataCell className='text-center'>0 %</CTableDataCell>
-                                    <CTableDataCell className='text-center'>8 %</CTableDataCell>
-                                    <CTableDataCell className='text-center'>1,166,400.00</CTableDataCell>
-
-                                </CTableRow>
+                             </CTableRow>
+                            ))}
+                               
                             </CTableBody>
                         </CTable>
 
@@ -190,9 +201,7 @@ const ViewSalesOrder = () => {
                     <CRow>
                         <CCol md={6}>
                             <p>Notes:</p>
-                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                                labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                                laboris nisi ut aliquip ex ea commodo consequat.</p>
+                            <p>{salesOrder?.order_remarks}</p>
                         </CCol>
                         <CCol style={{ textAlign: 'end' }} >
                             <CRow className='mt-2'>
@@ -200,7 +209,7 @@ const ViewSalesOrder = () => {
                                     <span className='ms-5'>Sub Total</span>
                                 </CCol>
                                 <CCol>
-                                    <span className='ms-5'>1,224,720.00</span>
+                                    <span className='ms-5'>{numberWithCommas(Number(salesOrder?.order_sub_chargers).toFixed(2))}</span>
                                 </CCol>
 
                             </CRow>
@@ -209,23 +218,23 @@ const ViewSalesOrder = () => {
                                     <span className='ms-5'>Delivery Chargers</span>
                                 </CCol>
                                 <CCol>
-                                    <span className='ms-5'>10,000.00</span>
+                                    <span className='ms-5'>{numberWithCommas(Number(salesOrder?.order_delivery_chargers).toFixed(2))}</span>
                                 </CCol>
                             </CRow>
-                            <CRow className='mt-2'>
+                            {salesOrder?.order_total_refund ? <CRow className='mt-2'>
                                 <CCol>
                                     <span className='ms-5'>Credit Memo</span>
                                 </CCol>
                                 <CCol>
-                                    <span className='ms-5'>53,320.00</span>
+                                    <span className='ms-5'>{numberWithCommas(Number(salesOrder?.order_total_refund).toFixed(2))}</span>
                                 </CCol>
-                            </CRow>
+                            </CRow> : null }
                             <CRow className='mt-4'>
                                 <CCol >
                                     <span style={{ fontWeight: 'bold' }}>Total (LKR)</span>
                                 </CCol>
                                 <CCol>
-                                    <span style={{ fontWeight: 'bold' }}>1,181,400.00</span>
+                                    <span style={{ fontWeight: 'bold' }}>{numberWithCommas(Number(totalAmount).toFixed(2))}</span>
                                 </CCol>
                             </CRow>
 

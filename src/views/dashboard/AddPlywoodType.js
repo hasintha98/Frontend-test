@@ -201,7 +201,6 @@ const AddPlywoodType = () => {
                             <CTableBody>
                                 {profile?.map((item, index) => (
                                     <CTableRow key={index}>
-
                                         <CTableDataCell className='text-center' >
                                             {item.type}
                                         </CTableDataCell>
