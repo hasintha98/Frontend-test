@@ -1,6 +1,10 @@
-import { CButton, CButtonGroup, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CForm, CFormInput, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import { cilWarning } from '@coreui/icons';
+import CIcon from '@coreui/icons-react';
+import { CAlert, CButton, CButtonGroup, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CForm, CFormInput, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
+import PinRequiredModel from 'src/components/Models/PinRequiredModel';
+import { PAGES } from 'src/hooks/constants';
 import InvoiceServices from 'src/services/InvoiceService';
 import SalesOrderServices from 'src/services/SalesOrderServices';
 import swal from 'sweetalert';
@@ -12,10 +16,12 @@ const NewInvoice = () => {
     const [itemList, setItemList] = useState([])
     const [salesOrder, setSalesOrder] = useState(null)
     const [totalAmount, setTotalAmount] = useState(0)
-
+    const [pinVisibleModel, setPinVisibleModel] = useState(false)
     const [subAmount, setSubAmount] = useState(0)
-
+    const [validationAlert, setValidationAlert] = useState(false)
+    const [validationMsg, setValidationMsg] = useState("")
     const [notes, setNotes] = useState("")
+    const [itemStocks, setItemStocks] = useState([])
 
     const [invoiceDate, setInvoiceDate] = useState(new Date().toLocaleDateString('en-CA'))
     useEffect(() => {
@@ -26,6 +32,10 @@ const NewInvoice = () => {
                 // setTotalAmount(parseFloat(item.order_sub_chargers) - parseFloat(item.order_delivery_chargers))
                 setSalesOrder(item)
                 setItemList(item.Orders_Items_TBs)
+                SalesOrderServices.getMaxMinStockAvailability("dash_page", item.Orders_Items_TBs)
+                .then(response => {
+                    setItemStocks(response.data)
+                })
 
             })
             .catch(error => {
@@ -33,11 +43,31 @@ const NewInvoice = () => {
                 console.log(error.response.message)
             })
 
+       
+
 
     }, [])
 
-    const handleQTY = (qty, id, itemDetails) => {
-        console.log(qty, id)
+    const handleQTY = (qty, id, itemDetails, orderQTY, invoicedQTY, stock) => {
+        setValidationAlert(false)
+        if(qty > orderQTY) {
+            setValidationAlert(true)
+            setValidationMsg(`Qty must be less than ${orderQTY}`)
+            return
+        }
+
+        if(qty < invoicedQTY) {
+            setValidationAlert(true)
+            setValidationMsg(`Qty must be higher than ${invoicedQTY}`)
+            return
+        }
+
+        if(qty > stock) {
+            setValidationAlert(true)
+            setValidationMsg(`Qty must be higher than stock (${stock})`)
+            return
+        }
+
         let subTotal = 0
         const newList = itemList.map(item => {
             if (item.id === id) {
@@ -62,8 +92,22 @@ const NewInvoice = () => {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
+    const getItemStock = (type, size) => {
+        const item = itemStocks.find(o => o.type === type && o.size === size)
+        return item?.stock
+    }
+
     const createInvoice = () => {
-        InvoiceServices.createNewInvoice("user_page", Number(orderId), invoiceDate, notes, subAmount, salesOrder?.order_delivery_chargers, totalAmount, itemList)
+
+        if(!invoiceDate) {
+            return
+        }
+
+        if(validationAlert) {
+            return
+        }
+
+        InvoiceServices.createNewInvoice("dash_page", Number(orderId), invoiceDate, notes, subAmount, salesOrder?.order_delivery_chargers, totalAmount, itemList)
             .then(response => {
                 swal("Success!", "Invoice Created Successfully", "success").then((value) => {
                     navigate(`/sales/view?id=${orderId}`)
@@ -78,7 +122,7 @@ const NewInvoice = () => {
             <CRow style={{ overflow: 'hidden' }}>
                 <CCol>
 
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# {orderId}</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# SO{salesOrder?.sop}</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
 
@@ -111,7 +155,7 @@ const NewInvoice = () => {
                         <CRow>
                             <CCol>
                                 <p style={{ fontSize: "2.5em", fontWeight: "bold", padding: 0, margin: 0 }}>New Invoice</p>
-                                <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# SOP{salesOrder?.sop}</p>
+                                <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# SO{salesOrder?.sop}</p>
                             </CCol>
 
 
@@ -159,7 +203,7 @@ const NewInvoice = () => {
                         <CTableBody>
                             {itemList?.map((item, index) => (
                                 <CTableRow key={index} >
-                                    <CTableDataCell className='text-center'>{item.type} - {item.size}mm</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.type} - {item.size}mm ({getItemStock(item.type, item.size)})</CTableDataCell>
                                     <CTableDataCell className='text-center'>{numberWithCommas(Number(item.rates).toFixed(2))}</CTableDataCell>
                                     <CTableDataCell className='text-center'>
                                         {item.qty_ordered ? <p>Ordered <br />{item.qty_ordered}</p> : null}
@@ -168,7 +212,11 @@ const NewInvoice = () => {
                                         {item.qty_returned ? <p>Returned <br />{item.qty_returned}</p> : null}
                                     </CTableDataCell>
                                     <CTableDataCell className='text-center'>
-                                        <CFormInput type="number" max={item.qty_ordered} onChange={(e) => handleQTY(e.target.value, item.id, `${item.type} - ${item.size}mm`)} />
+                                        <CFormInput type="number" max={item.qty_ordered} onChange={(e) => handleQTY(e.target.value, item.id, `${item.type} - ${item.size}mm`, item.qty_ordered, item.qty_invoiced, getItemStock(item.type, item.size))} />
+                                        <CAlert width={200} color="warning" dismissible visible={validationAlert} onClose={() => setValidationAlert(false)} className="d-flex align-items-center mt-2">
+                                            <CIcon icon={cilWarning} className="flex-shrink-0 me-2" width={10} height={10} />
+                                            <div style={{fontSize: '0.7em'}}>{validationMsg}</div>
+                                        </CAlert>
                                     </CTableDataCell>
                                     <CTableDataCell className='text-center'>{numberWithCommas(Number(item?.sub_rates ? item?.sub_rates : 0).toFixed(2))}</CTableDataCell>
                                     <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
@@ -227,7 +275,7 @@ const NewInvoice = () => {
                         <CButton
                             color="success"
                             style={{ color: '#fff', width: "30%", marginTop: '50px' }}
-                            onClick={createInvoice}
+                            onClick={() => setPinVisibleModel(true)}
                         >
                             Submit Invoice
                         </CButton>
@@ -235,7 +283,13 @@ const NewInvoice = () => {
                     </CCol>
                 </CRow>
             </CRow>
-
+            <PinRequiredModel
+                visible={pinVisibleModel}
+                pinStatus={(status) => status ? createInvoice() : setPinVisibleModel(false)}
+                onClose={(val) => setPinVisibleModel(val)}
+                page={PAGES.SALES_ORDER}
+                action={"create"}
+            />
         </>
     )
 }

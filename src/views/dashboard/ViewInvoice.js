@@ -1,4 +1,5 @@
 import { CButton, CButtonGroup, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CForm, CFormInput, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
@@ -50,7 +51,7 @@ const ViewInvoice = () => {
     }
 
     const updateInvoiceStatus = () => {
-        InvoiceServices.updateInvoiceByStatus("user_page", Number(invoice?.orderedId), Number(invoice?.id), invoiceStatus == 0 ? 1 : 0)
+        InvoiceServices.updateInvoiceByStatus("dash_page", Number(invoice?.orderedId), Number(invoice?.id), invoiceStatus == 0 ? 1 : 0)
         .then(response => {
             swal("Success!", "Invoice Status Changed Successfully", "success")
             getInvoiceDetails()
@@ -65,7 +66,7 @@ const ViewInvoice = () => {
             <CRow style={{ overflow: 'hidden' }}>
                 <CCol>
 
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Invoice# {invId}</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# SO{sop}</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
 
@@ -140,7 +141,7 @@ const ViewInvoice = () => {
 
                     </CRow>
                     <CRow className='d-flex justify-content-end'>
-                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Invoice Date </span>: 22/12/2021</span>
+                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Invoice Date </span>: {moment(invoice?.invoiced_date).format("YYYY-MM-DD")}</span>
                     </CRow>
 
                     {/* Table */}
@@ -164,7 +165,7 @@ const ViewInvoice = () => {
                                     <CTableRow key={index}>
                                         <CTableDataCell className='text-start'>{item.item_details}</CTableDataCell>
                                         <CTableDataCell className='text-center'>{item.qty_to_invoice}</CTableDataCell>
-                                        <CTableDataCell className='text-center'>{item.rates}</CTableDataCell>
+                                        <CTableDataCell className='text-center'>{numberWithCommas(Number(item.rates).toFixed(2))}</CTableDataCell>
                                         <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
                                         <CTableDataCell className='text-center'>{item.taxes} %</CTableDataCell>
                                         <CTableDataCell className='text-center'>Rs. {numberWithCommas(Number(item.total).toFixed(2))}</CTableDataCell>

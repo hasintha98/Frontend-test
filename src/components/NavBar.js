@@ -1,7 +1,13 @@
 import { CButton, CContainer, CNavbar, CNavbarBrand } from '@coreui/react'
-import React from 'react'
+import React, { useState } from 'react'
+import LoadingModel from './Models/LoadingModel'
+import LoginModel from './Models/LoginModel'
 
 const NavBar = () => {
+    const [loginVisible, setLoginVisible] = useState(false)
+
+    const [loading, setLoading] = useState(false)
+    const [loadingMsg, setLoadingMsg] = useState(null)
     return (
         <CNavbar
             style={{ height: "80px", backgroundColor: "#414A4E" }}
@@ -19,10 +25,20 @@ const NavBar = () => {
                 <CButton
                     color="dark"
                     shape="rounded-pill"
-                    style={{ color: "#FEFDFE", backgroundColor: '#21292B', marginRight: "15px" }}>
+                    onClick={() => setLoginVisible(true)}
+                    first style={{ color: "#FEFDFE", backgroundColor: '#21292B', marginRight: "15px" }}>
                     LOGIN
                 </CButton>
             </CContainer>
+            <LoginModel visible={loginVisible} 
+            onClose={(val) => setLoginVisible(val)} 
+            isLoading={(val) => setLoading(val)} 
+            loadingMsg={(val) => setLoadingMsg(val)} />
+            <LoadingModel 
+            visible={loading} 
+            loadingMsg={loadingMsg} 
+            onClose={(val) => setLoading(val)} 
+            />
         </CNavbar>
     )
 

@@ -145,6 +145,47 @@ const getAllProductionRecordsList = async (
 };
 
 
+const getProductionsSummaryList = async (
+  page_name,
+  page,
+  size,
+  title_fil_type,
+  title_fil_size,
+  startTime,
+  endTime
+) => {
+  //console.log(" get production records list Calling... by ", page_name);
+
+  var data = {
+    page: page,
+    size: size,
+    title_fil_type: title_fil_type,
+    title_fil_size: title_fil_size,
+    startTime: startTime,
+    endTime: endTime,
+  };
+
+  console.log(data)
+
+  if (page_name === "user_page") {
+    const response = await axios.post(
+      "http://localhost:5000/api/productionPlyWood/getProductionsSummaryList",
+      data
+    );
+
+    return response;
+  } else {
+    const response = Api.post(
+      "/productionPlyWood/getProductionsSummaryList",
+      data
+    );
+
+    return response;
+  }
+};
+
+
+
 
 const exportProductionsTimePeriod = async (
   page_name,
@@ -185,6 +226,7 @@ const ProductionService = {
   getLastProductionRecord,
   getAllProductionRecordsList,
   exportProductionsTimePeriod,
+  getProductionsSummaryList
 };
 
 export default ProductionService;

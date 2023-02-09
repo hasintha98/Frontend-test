@@ -246,6 +246,29 @@ const exportSalesOrdersTimePeriod  = async (
   }
 };
 
+const getMaxMinStockAvailability = async (
+  page_name,
+  itemsIn
+) => {
+  //console.log(" create new Sales Order calling.. by ", page_name);
+
+  var data = {
+    itemsIn
+  };
+
+  if (page_name === "user_page") {
+    const response = await axios.post(
+      AppConfigData.Backend_Url + "/plyWoodTypes/getMaxMinStockAvailability",
+      data
+    );
+
+    return response;
+  } else {
+    const response = Api.post("/plyWoodTypes/getMaxMinStockAvailability", data);
+
+    return response;
+  }
+};
 
 
 //SalesOrderServices
@@ -257,6 +280,7 @@ const SalesOrderServices = {
   getSalesList,
   getSalesById,
   exportSalesOrdersTimePeriod,
+  getMaxMinStockAvailability
 };
 
 export default SalesOrderServices;

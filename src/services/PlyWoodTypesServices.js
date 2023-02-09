@@ -143,6 +143,44 @@ const addStockPlyWoodTypeRecord = async (
 };
 
 
+const convertProductionGrade2 = async (
+  page_name,
+  id, 
+  date, 
+  size, 
+  type, 
+  qty
+
+) => {
+  
+
+  var data = {
+    id: id,
+    date: date,
+    size: size,
+    type: type,
+    qty: qty
+  };
+
+  console.log(data)
+
+  //console.log(" add stock ply wood types Calling... by ", page_name ,data);
+
+  if (page_name === "user_page") {
+    const response = await axios.post(
+      "http://localhost:5000/api/productionPlyWood/convertProductionGrade2",
+      data
+    );
+
+    return response;
+  } else {
+    const response = Api.post("/productionPlyWood/convertProductionGrade2", data);
+
+    return response;
+  }
+};
+
+
 
 const deletePlyWoodTypesRecord = async (page_name, id) => {
   //console.log(" delete ply wood   record Calling... by ", page_name, id);
@@ -215,6 +253,7 @@ const getPlyWoodTypeListExport = async (page_name, role) => {
 const PlyWoodTypesServices = {
   getPlyWoodTypesListAll,
   getPlyWoodTypesList,
+  convertProductionGrade2,
   createNewPlyWoodTypeRecord,
   updatePlyWoodTypeRecord,
   addStockPlyWoodTypeRecord,

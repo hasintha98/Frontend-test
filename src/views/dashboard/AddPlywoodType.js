@@ -1,10 +1,23 @@
-import { CButton, CCard, CCardBody, CCol, CCollapse, CFormInput, CFormLabel, CFormSwitch, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { cilWarning } from '@coreui/icons';
+import CIcon from '@coreui/icons-react';
+import { CAlert, CButton, CCard, CCardBody, CCol, CCollapse, CFormInput, CFormLabel, CFormSwitch, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import React, { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom';
+import LoadingModel from 'src/components/Models/LoadingModel';
+import PinRequiredModel from 'src/components/Models/PinRequiredModel';
+import { ACTIONS, PAGES } from 'src/hooks/constants';
+import ActivityLogsService from 'src/services/ActivityLogsService';
+import AuthService from 'src/services/AuthService';
 import PlyWoodTypesServices from 'src/services/PlyWoodTypesServices';
 import swal from 'sweetalert';
 
 const AddPlywoodType = () => {
+    const search = useLocation().search
+    const [loading, setLoading] = useState(false)
+    const [loadingMsg, setLoadingMsg] = useState(null)
+    const [validationAlert, setValidationAlert] = useState(false)
+    const [validationMsg, setValidationMsg] = useState("")
+    const [pinVisibleModel, setPinVisibleModel] = useState(false)
     const [generalCollapseVisible, setGeneralCollapseVisible] = useState(true)
     const [rawCollapseVisible, setRawCollapseVisible] = useState(true)
     const [type, setType] = useState("")
@@ -12,50 +25,108 @@ const AddPlywoodType = () => {
     const [stock, setStock] = useState(null)
     const [minQty, setMinQty] = useState(null)
     const [profile, setProfile] = useState([])
-
+    const [id, setId] = useState(new URLSearchParams(search).get('id'))
+    const [plyWood, setPlyWood] = useState(null)
     const [rawType, setRawType] = useState("")
     const [rawStock, setRawStock] = useState(null)
+    const [active, setActive] = useState(1)
     const navigate = useNavigate();
 
-    const submitPlyWoodType = () => {
+    const submitPlyWoodType = async () => {
         if (type == "") {
-            console.log("validation error: type")
+            setValidationAlert(true)
+            setValidationMsg("Please fill the required fields : Type")
             return
         }
         if (!size) {
-            console.log("validation error: size")
+            setValidationAlert(true)
+            setValidationMsg("Please fill the required fields : Size")
             return
         }
         if (!stock) {
-            console.log("validation error: stock")
+            setValidationAlert(true)
+            setValidationMsg("Please fill the required fields : Stock")
             return
         }
         if (!minQty) {
-            console.log("validation error: minQty")
+            setValidationAlert(true)
+            setValidationMsg("Please fill the required fields : Min Qty")
             return
         }
 
         if (profile.length == 0) {
-            console.log("validation error: profile")
+            setValidationAlert(true)
+            setValidationMsg("Please fill the required fields : items")
             return
         }
-        PlyWoodTypesServices.createNewPlyWoodTypeRecord("user_page", size, type, stock, minQty, profile)
+
+        setLoadingMsg("Creating Plywood Type...")
+        setLoading(true)
+        if (id) {
+            await PlyWoodTypesServices.updatePlyWoodTypeRecord("dash_page", id, size, type, stock, minQty, active,profile)
             .then(response => {
-                swal("Success!", "Plywood Type Added Successfully", "success");
+                setValidationAlert(false)
+                setLoadingMsg(null)
+                setLoading(false)
+                swal("Success!", "Plywood Type Updated Successfully", "success");
                 //clearFields()
+                ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.EDIT, 1)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
                 console.log(response)
+
             }).catch(error => {
                 console.log(error.response.data.message)
+                setValidationAlert(false)
+                setLoadingMsg(null)
+                setLoading(false)
                 swal("Error!", error.response.data.message, "error");
+                ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.EDIT, 0)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
             })
+        } else {
+
+
+            await PlyWoodTypesServices.createNewPlyWoodTypeRecord("dash_page", size, type, stock, minQty, profile)
+                .then(response => {
+                    setValidationAlert(false)
+                    setLoadingMsg(null)
+                    setLoading(false)
+                    swal("Success!", "Plywood Type Created Successfully", "success");
+                    //clearFields()
+                    ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.CREATE, 1)
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
+                    console.log(response)
+
+                }).catch(error => {
+                    console.log(error.response.data.message)
+                    setValidationAlert(false)
+                    setLoadingMsg(null)
+                    setLoading(false)
+                    swal("Error!", error.response.data.message, "error");
+                    ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.CREATE, 0)
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
+                })
+        }
     }
 
     const addRawMaterials = () => {
-        if(rawType == "") {
+        if (rawType == "") {
             return
         }
 
-        if(!rawStock) {
+        if (!rawStock) {
             return
         }
         const pro = { type: rawType, stock: rawStock }
@@ -68,11 +139,51 @@ const AddPlywoodType = () => {
     }
 
     console.log(profile)
+
+    useEffect(() => {
+        setId(new URLSearchParams(search).get('id'))
+        if (id) {
+            getPlywoodType()
+        }
+
+    }, [id])
+
+    const getPlywoodType = async () => {
+        await PlyWoodTypesServices.getPlyWoodTypesList(
+            "dash_page",
+            0,
+            10,
+            "",
+            ""
+        )
+            .then(response => {
+                const { plyWoodList } = response.data;
+                const plywood = plyWoodList.find(o => o.id == id)
+                console.log(plyWoodList)
+                console.log(plywood)
+                setPlyWood(plywood)
+                setType(plywood?.type)
+                setSize(plywood?.size)
+                setStock(plywood?.stock)
+                setMinQty(plywood?.limit)
+                const rawMatArray = plyWood.RawMaterials_PlyWood__Inventory_TBs.map(item => {
+                    return { type: item.type, stock: item.stock }
+                })
+
+                setProfile(rawMatArray)
+            })
+    }
+
+    const handleActive = (e) => {
+        if(e) setActive(1)
+        else setActive(0)
+        
+    }
     return (
         <>
             <CRow>
                 <CCol>
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Add New Plywood Type</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>{id ? "Edit Plywood Type" : "Add New Plywood Type"}</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
                     <CCol md={5}>
@@ -84,7 +195,7 @@ const AddPlywoodType = () => {
 
                             color='secondary'
                             style={{ width: "100%" }}
-                            onClick={() => navigate('/inventory?type=plywood')}
+                            onClick={() => navigate('/inventory/plywood')}
                         ><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                                 arrow_back
                             </span>{' '}Back</CButton>
@@ -95,13 +206,18 @@ const AddPlywoodType = () => {
                             className='default-border'
                             variant="outline"
                             style={{ fontSize: "1em", fontWeight: '600', width: "100%" }}
-                            onClick={() => submitPlyWoodType()}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+                            onClick={() => setPinVisibleModel(true)}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                                 add
                             </span>{' '}Save</CButton>
                     </CCol>
                 </CCol>
+                <CAlert color="warning" dismissible visible={validationAlert} onClose={() => setValidationAlert(false)} className="d-flex align-items-center mt-2">
+                    <CIcon icon={cilWarning} className="flex-shrink-0 me-2" width={24} height={24} />
+                    <div>{validationMsg}</div>
+                </CAlert>
             </CRow>
-            <CRow className='mt-5'>
+
+            <CRow className='mt-3'>
                 <CCol md={11}>
                     <span className='fs-5'>General</span>
                 </CCol>
@@ -117,7 +233,7 @@ const AddPlywoodType = () => {
                     <CRow className="mb-3" >
                         <CFormLabel htmlFor="enable" className="col-sm-2 col-form-label">Enable</CFormLabel>
                         <CCol md={3}>
-                            <CFormSwitch color='success' size="lg" style={{ width: "12%" }} id="enable" defaultChecked />
+                            <CFormSwitch color='success' size="lg" style={{ width: "12%" }} id="enable" value={active} onChange={(e) => handleActive(e.target.checked)} />
                         </CCol>
                     </CRow>
                     <CRow className="mb-3" >
@@ -182,12 +298,12 @@ const AddPlywoodType = () => {
                 </CCol>
                 <hr />
                 <CCollapse className='mt-3' visible={rawCollapseVisible} style={{ marginLeft: '25%' }}>
-                    <CRow className="mb-3" >
+                    {/* <CRow className="mb-3" >
                         <CFormLabel htmlFor="enable" className="col-sm-2 col-form-label">Enable</CFormLabel>
                         <CCol md={3}>
                             <CFormSwitch color='success' size="lg" style={{ width: "12%" }} id="enable" defaultChecked />
                         </CCol>
-                    </CRow>
+                    </CRow> */}
                     <CRow >
                         <CTable style={{ width: "50%" }} >
                             <CTableHead>
@@ -255,7 +371,7 @@ const AddPlywoodType = () => {
                                 className='mt-3'
                                 color='secondary'
                                 style={{ width: "15%" }}
-                                onClick={() => navigate('/inventory?type=plywood')}
+                                onClick={() => navigate('/inventory/plywood')}
                             >Reset & Fetch {' '} <span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                                     autorenew
                                 </span></CButton>
@@ -264,6 +380,14 @@ const AddPlywoodType = () => {
                 </CCollapse>
 
             </CRow>
+            <PinRequiredModel
+                visible={pinVisibleModel}
+                pinStatus={(status) => status ? submitPlyWoodType() : setPinVisibleModel(false)}
+                onClose={(val) => setPinVisibleModel(val)} 
+                page={PAGES.PLYWOOD}
+                action={id ? "edit" : "create"}
+                />
+            <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
         </>
     )
 }

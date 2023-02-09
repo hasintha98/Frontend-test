@@ -6,6 +6,7 @@ import AddEditVendorModel from 'src/components/Models/AddEditVendorModel';
 import ExportModel from 'src/components/Models/ExportModel';
 import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
+import { PAGES } from 'src/hooks/constants';
 
 const Vendors = () => {
     const [deleteVisible, setDeleteVisible] = useState(false)
@@ -30,7 +31,7 @@ const Vendors = () => {
         setAddCustomerVisible(state)
 
     }
-    return visiblePinModel ? <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
+    return visiblePinModel ? <PinRequiredModel  isNavigate={true} page={PAGES.USER} visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} isNavigation={true} /> : (
         <>
             <CRow>
                 <CCol md={8}>
@@ -52,13 +53,11 @@ const Vendors = () => {
                 </CCol>
             </CRow>
             <CRow className='mt-5'>
-
                 <CCol md={3}>
                     <CFormSelect className='default-border' aria-label="Default select example">
-                        <option>Bulk Action</option>
-                        <option value="1">One</option>
-                        <option value="2">Two</option>
-                        <option value="3" disabled>Three</option>
+                        <option>None</option>
+                        <option value="delete">Delete Selected</option>
+                        <option value="export">Export Selected</option>
                     </CFormSelect>
                 </CCol>
                 <CCol md={1}>
@@ -111,7 +110,7 @@ const Vendors = () => {
                             <CTableHeaderCell scope="col" className='text-center'>Phone</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Email</CTableHeaderCell>
                             <CTableHeaderCell scope="col" className='text-center'>Purchase Orders</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Action</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className='text-center' width={200}>Action</CTableHeaderCell>
                         </CTableRow>
                     </CTableHead>
                     <CTableBody>

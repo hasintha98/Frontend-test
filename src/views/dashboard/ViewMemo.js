@@ -1,24 +1,73 @@
 import { CButton, CButtonGroup, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CForm, CFormCheck, CFormInput, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
-import React, { useRef } from 'react'
+import moment from 'moment';
+import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
+import CreditMemoServices from 'src/services/CreditMemoService';
+import CustomersServices from 'src/services/CustomersServices';
+import swal from 'sweetalert';
 const ViewMemo = () => {
     const navigate = useNavigate();
     const search = useLocation().search
     const memoId = new URLSearchParams(search).get('memoId')
+    const sop = new URLSearchParams(search).get('sop')
     console.log(memoId)
 
+
+    const [memoStatus, setMemoStatus] = useState(0)
+    const [totalAmount, setTotalAmount] = useState(0)
+    const [customerDetails, setCustomer] = useState(null)
+    const [creditMemo, setCreditMemo] = useState(null)
     const componentRef = useRef();
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
     });
+
+
+    useEffect(() => {
+        getMemoDetails()
+    }, [])
+
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    const getMemoDetails = () => {
+        CreditMemoServices.getMemoList("dash_page", 0, 10, "", null, null, -1)
+            .then(response => {
+                console.log(response)
+                const item = response.data.returnInvoiceList.find(obj => obj.id === Number(memoId));
+                setTotalAmount(parseFloat(item.order_sub_chargers) - parseFloat(item.order_delivery_chargers))
+                setCreditMemo(item)
+                setMemoStatus(item.invoice_returned_status)
+                CustomersServices.getAllCustomersInfo("dash_page", 0, 10, "")
+                    .then(response => {
+
+                        const customer = response.data.customersList.find(obj => obj.id === Number(item.Orders_Data_TB.customerId));
+                        setCustomer(customer)
+                        console.log(customer)
+                    })
+                console.log(item)
+            })
+    }
+
+    const updateMemoStatus = () => {
+        CreditMemoServices.updateMemoByStatus("dash_page", Number(creditMemo?.orderedId), Number(creditMemo?.id), memoStatus == 0 ? 1 : 0)
+        .then(response => {
+            swal("Success!", "Credit Memo Status Changed Successfully", "success")
+            getMemoDetails()
+            
+        }).catch(error => {
+            swal("Error!", error.response.data.message, "error")
+        })
+    }
 
     return (
         <>
             <CRow style={{ overflow: 'hidden' }}>
                 <CCol>
 
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# {memoId}</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# SO{sop}</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
 
@@ -38,8 +87,8 @@ const ViewMemo = () => {
                             role="button"
                             color='secondary'
                             style={{ width: "100%", backgroundColor: '#D9D9D9' }}
-
-                        >Mark as Refunded</CButton>
+                            onClick={() => updateMemoStatus()}
+                        >{memoStatus == 0 ? "Mark as Refunded" : "Mark as Refund Pending"}</CButton>
                     </CButtonGroup>
                     <CButtonGroup className="me-2" style={{ height: '35px' }} role="group" aria-label="Second group">
                         <CButton style={{ backgroundColor: '#D9D9D9' }} color="secondary">
@@ -76,8 +125,8 @@ const ViewMemo = () => {
                             <CRow>
                                 <CCol>
                                     <p style={{ fontSize: "2.5em", fontWeight: "bold", padding: 0, margin: 0 }}>Credit Memo</p>
-                                    <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# SO451</p>
-                                    <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Memo# {memoId}</p>
+                                    <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# SO{sop}</p>
+                                    <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Memo# CM{creditMemo?.rip}</p>
                                 </CCol>
 
 
@@ -87,14 +136,14 @@ const ViewMemo = () => {
                     <CRow className='mt-5'>
                         <CCol md={3} >
                             <p style={{ fontWeight: 'bold' }}>Bill To:</p>
-                            <p>John Doe, </p>
-                            <p>Homagama, </p>
-                            <p>+94 77 045 1234</p>
+                            <p>{customerDetails?.name}, </p>
+                            <p>{customerDetails?.address} </p>
+                            <p>{customerDetails?.phone}</p>
                         </CCol>
 
                     </CRow>
                     <CRow className='d-flex justify-content-end'>
-                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Invoice Date </span>: 22/12/2021</span>
+                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Invoice Date </span>: {moment(creditMemo?.invoiced_returned_date).format("YYYY-MM-DD")}</span>
                     </CRow>
 
                     {/* Table */}
@@ -114,25 +163,19 @@ const ViewMemo = () => {
                                 </CTableRow>
                             </CTableHead>
                             <CTableBody>
+                                {creditMemo?.ReturnedInvoice_Items_TBs.map((item, index) => (
+                                    <CTableRow key={index}>
+                                        <CTableDataCell className='text-start'>{item.item_details}</CTableDataCell>
+                                        <CTableDataCell className='text-center'>{item.qty_returned} </CTableDataCell>
+                                        <CTableDataCell className='text-center'>{numberWithCommas(Number(item.sub_rates).toFixed(2))}</CTableDataCell>
+                                        <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
+                                        <CTableDataCell className='text-center'>{item.taxes} %</CTableDataCell>
+                                        <CTableDataCell className='text-center'>Rs. {numberWithCommas(Number(item.total).toFixed(2))}</CTableDataCell>
 
-                                <CTableRow >
-                                    <CTableDataCell className='text-start'>OK-G1</CTableDataCell>
-                                    <CTableDataCell className='text-center'>10 </CTableDataCell>
-                                    <CTableDataCell className='text-center'>5400.00</CTableDataCell>
-                                    <CTableDataCell className='text-center'>0 %</CTableDataCell>
-                                    <CTableDataCell className='text-center'>8 %</CTableDataCell>
-                                    <CTableDataCell className='text-center'>1,020,600.00</CTableDataCell>
+                                    </CTableRow>
+                                ))}
 
-                                </CTableRow>
-                                <CTableRow >
-                                    <CTableDataCell className='text-start'>OK-G1</CTableDataCell>
-                                    <CTableDataCell className='text-center'>10 </CTableDataCell>
-                                    <CTableDataCell className='text-center'>5400.00</CTableDataCell>
-                                    <CTableDataCell className='text-center'>0 %</CTableDataCell>
-                                    <CTableDataCell className='text-center'>8 %</CTableDataCell>
-                                    <CTableDataCell className='text-center'>1,020,600.00</CTableDataCell>
-
-                                </CTableRow>
+                               
                             </CTableBody>
                         </CTable>
 
@@ -142,9 +185,7 @@ const ViewMemo = () => {
                         <CCol md={6}>
 
                             <p className='mt-5'>Notes:</p>
-                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                                labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                                laboris nisi ut aliquip ex ea commodo consequat.</p>
+                            <p>{creditMemo?.invoice_returned_remarks}.</p>
 
 
                         </CCol>
@@ -154,7 +195,7 @@ const ViewMemo = () => {
                                     <span className='ms-5'>Sub Total</span>
                                 </CCol>
                                 <CCol>
-                                    <span className='ms-5'>1,224,720.00</span>
+                                    <span className='ms-5'>{numberWithCommas(Number(creditMemo?.invoice_returned_sub_total).toFixed(2))}</span>
                                 </CCol>
 
                             </CRow>
@@ -163,7 +204,7 @@ const ViewMemo = () => {
                                     <span className='ms-5'>Adjustment Refund</span>
                                 </CCol>
                                 <CCol>
-                                    <span className='ms-5'>10,000.00</span>
+                                    <span className='ms-5'>{numberWithCommas(Number(creditMemo?.invoice_returned_adj_refunded).toFixed(2))}</span>
                                 </CCol>
                             </CRow>
 
@@ -172,7 +213,7 @@ const ViewMemo = () => {
                                     <span style={{ fontWeight: 'bold' }}>Total (LKR)</span>
                                 </CCol>
                                 <CCol>
-                                    <span style={{ fontWeight: 'bold' }}>1,181,400.00</span>
+                                    <span style={{ fontWeight: 'bold' }}>{numberWithCommas(Number(creditMemo?.invoice_returned_balance_total).toFixed(2))}</span>
                                 </CCol>
                             </CRow>
 

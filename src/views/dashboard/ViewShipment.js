@@ -1,23 +1,50 @@
 import { CButton, CButtonGroup, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CForm, CFormInput, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
-import React, { useRef } from 'react'
+import moment from 'moment';
+import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
-import {useReactToPrint } from 'react-to-print';
+import { useReactToPrint } from 'react-to-print';
+import CustomersServices from 'src/services/CustomersServices';
+import ShipmentServices from 'src/services/ShipmentService';
 const ViewShipment = () => {
     const navigate = useNavigate();
     const search = useLocation().search
     const shipId = new URLSearchParams(search).get('shipId')
-    console.log(shipId)
+
+    const [shipment, setShipment] = useState(null)
+    const [customer, setCustomer] = useState(null)
 
     const componentRef = useRef();
     const handlePrint = useReactToPrint({
-      content: () => componentRef.current,
+        content: () => componentRef.current,
     });
+
+    const getShipmentDetails = () => {
+        ShipmentServices.getShipmentList("dash_page", 0, 10, "", null, null, -1)
+            .then(response => {
+                const item = response.data.shipmentInvoiceList.find(obj => obj.id === Number(shipId));
+                // setTotalAmount(parseFloat(item.order_sub_chargers) - parseFloat(item.order_delivery_chargers))
+                setShipment(item)
+                // setInvoiceStatus(item.invoice_status)
+                CustomersServices.getAllCustomersInfo("dash_page", 0, 10, "")
+                    .then(response => {
+                        console.log(response)
+                        const customer = response.data.customersList.find(obj => obj.id === Number(item?.Orders_Data_TB.customerId));
+                        setCustomer(customer)
+
+                    })
+                console.log(item)
+            })
+    }
+
+    useEffect(() => {
+        getShipmentDetails()
+    }, [])
     return (
         <>
             <CRow style={{ overflow: 'hidden' }}>
                 <CCol>
 
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Shipment# {shipId}</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# SO{shipment?.Orders_Data_TB.sop}</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
 
@@ -53,85 +80,81 @@ const ViewShipment = () => {
                 </CCol>
             </CRow>
             <hr style={{ backgroundColor: '#000', height: "2px" }} />
-            <div ref={componentRef} style={{padding: '50px'}}>
-            <CRow className='ms-2 mb-5' style={{ overflow: 'scroll' }}>
-                <CRow className='mt-5 '>
-                    <CCol>
-                        <p style={{ fontWeight: 'bold' }}>Riviruply Enterprises,</p>
-                        <p>Ganegama, </p>
-                        <p>Pelmadulla, </p>
-                        <p>Sri Lanka</p>
-                        <p>+94 754422606</p>
-                    </CCol>
-                    <CCol className='d-flex justify-content-end'>
-                        <CRow>
-                            <CCol>
-                                <p style={{ fontSize: "2.5em", fontWeight: "bold", padding: 0, margin: 0 }}>Shipping Note</p>
-                                <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# SO451</p>
-                                <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Shipment# {shipId}</p>
-                            </CCol>
+            <div ref={componentRef} style={{ padding: '50px' }}>
+                <CRow className='ms-2 mb-5' style={{ overflow: 'scroll' }}>
+                    <CRow className='mt-5 '>
+                        <CCol>
+                            <p style={{ fontWeight: 'bold' }}>Riviruply Enterprises,</p>
+                            <p>Ganegama, </p>
+                            <p>Pelmadulla, </p>
+                            <p>Sri Lanka</p>
+                            <p>+94 754422606</p>
+                        </CCol>
+                        <CCol className='d-flex justify-content-end'>
+                            <CRow>
+                                <CCol>
+                                    <p style={{ fontSize: "2.5em", fontWeight: "bold", padding: 0, margin: 0 }}>Shipping Note</p>
+                                    <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# SO{shipment?.Orders_Data_TB.sop}</p>
+                                    <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Shipment# SN{shipment?.sip ? shipment?.sip : shipId}</p>
+                                </CCol>
 
 
-                        </CRow>
-                    </CCol>
+                            </CRow>
+                        </CCol>
+                    </CRow>
+                    <CRow className='mt-5'>
+                        <CCol md={3} >
+                            <p style={{ fontWeight: 'bold' }}>Bill To:</p>
+                            <p>{customer?.name}, </p>
+                            <p>{customer?.address} </p>
+                            <p>{customer?.phone}</p>
+                        </CCol>
+                        <CCol>
+                            <p style={{ fontWeight: 'bold' }}>Ship To:</p>
+                            <p>{shipment?.shipment_to_name}, </p>
+                            <p>{shipment?.shipment_to_address} </p>
+                            <p>{shipment?.shipment_to_phone}</p>
+                        </CCol>
+                    </CRow>
+                    <CRow className='d-flex justify-content-end'>
+                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Shipment Date </span>: {moment(shipment?.shipment_date).format("YYYY-MM-DD")}</span>
+                    </CRow>
+
+                    {/* Table */}
+
+                    <CRow className='p-2 mt-4 mb-5'>
+                        <CTable bordered>
+                            <CTableHead>
+                                <CTableRow style={{ backgroundColor: '#000', color: '#fff' }}>
+                                    <CTableHeaderCell scope="col" className='text-start' >Item Details</CTableHeaderCell>
+                                    <CTableHeaderCell scope="col" className='text-center' width={300}>Quantity</CTableHeaderCell>
+
+                                </CTableRow>
+                            </CTableHead>
+                            <CTableBody>
+                                {shipment?.ShipmentInvoice_Items_TBs.map((item, index) => (
+                                    <CTableRow key={index}>
+                                        <CTableDataCell className='text-start'>{item.item_details}</CTableDataCell>
+                                        <CTableDataCell className='text-center'>{item.qty_shipping}</CTableDataCell>
+                                    </CTableRow>
+                                ))}
+
+                            </CTableBody>
+                        </CTable>
+
+                    </CRow>
+
+                    <CRow>
+                        <CCol md={6}>
+
+                            <p className='mt-3'>Notes:</p>
+                            <p>{shipment?.shipment_remarks}</p>
+
+
+                        </CCol>
+
+                    </CRow>
                 </CRow>
-                <CRow className='mt-5'>
-                    <CCol md={3} >
-                        <p style={{ fontWeight: 'bold' }}>Bill To:</p>
-                        <p>John Doe, </p>
-                        <p>Homagama, </p>
-                        <p>+94 77 045 1234</p>
-                    </CCol>
-                    <CCol>
-                        <p style={{ fontWeight: 'bold' }}>Ship To:</p>
-                        <p>John Doe, </p>
-                        <p>Homagama, </p>
-                        <p>+94 77 045 1234</p>
-                    </CCol>
-                </CRow>
-                <CRow className='d-flex justify-content-end'>
-                    <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Shipment Date </span>: 22/12/2021</span>
-                </CRow>
-
-                {/* Table */}
-
-                <CRow className='p-2 mt-4 mb-5'>
-                    <CTable bordered>
-                        <CTableHead>
-                            <CTableRow style={{ backgroundColor: '#000', color: '#fff' }}>
-                                <CTableHeaderCell scope="col" className='text-start' >Item Details</CTableHeaderCell>
-                                <CTableHeaderCell scope="col" className='text-center' width={300}>Quantity</CTableHeaderCell>
-
-                            </CTableRow>
-                        </CTableHead>
-                        <CTableBody>
-
-                            <CTableRow >
-                                <CTableDataCell className='text-start'>OK-G1</CTableDataCell>
-                                <CTableDataCell className='text-center'>175</CTableDataCell>
-                            </CTableRow>
-                            <CTableRow >
-                                <CTableDataCell className='text-start'>OK-G1</CTableDataCell>
-                                <CTableDataCell className='text-center'>175</CTableDataCell>
-                            </CTableRow>
-                        </CTableBody>
-                    </CTable>
-
-                </CRow>
-
-                <CRow>
-                    <CCol md={6}>
-
-                        <p className='mt-3'>Notes:</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                            labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                            laboris nisi ut aliquip ex ea commodo consequat.</p>
-
-
-                    </CCol>
-
-                </CRow>
-            </CRow>
             </div>
 
         </>

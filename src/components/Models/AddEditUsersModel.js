@@ -1,8 +1,14 @@
-import { CButton, CCol, CFormInput, CFormLabel, CFormSelect, CFormSwitch, CFormTextarea, CModal, CModalBody, CRow } from '@coreui/react'
+import { cilWarning } from '@coreui/icons'
+import CIcon from '@coreui/icons-react'
+import { CAlert, CButton, CCol, CFormInput, CFormLabel, CFormSelect, CFormSwitch, CFormTextarea, CModal, CModalBody, CRow } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import Select from 'react-select'
+import { ACTIONS, PAGES } from 'src/hooks/constants'
+import ActivityLogsService from 'src/services/ActivityLogsService'
+import AuthService from 'src/services/AuthService'
 import UserService from 'src/services/UserService'
 import swal from 'sweetalert'
+import PinRequiredModel from './PinRequiredModel'
 
 const AddEditUsersModel = ({ visible, onClose, isEdit, values, refreshPage }) => {
 
@@ -11,6 +17,11 @@ const AddEditUsersModel = ({ visible, onClose, isEdit, values, refreshPage }) =>
     const [password, setPassword] = useState("")
     const [role, setRole] = useState([])
     const [isEnable, setIsEnable] = useState(isEdit ? values.active : 0)
+    const [pinVisibleModel, setPinVisibleModel] = useState(false)
+
+    const [validationAlert, setValidationAlert] = useState(false)
+    const [validationMsg, setValidationMsg] = useState("")
+
     useEffect(() => {
         if (isEdit) {
             setName(values.name)
@@ -43,17 +54,20 @@ const AddEditUsersModel = ({ visible, onClose, isEdit, values, refreshPage }) =>
 
         console.log("save")
         if (name == "") {
-            console.log(name)
+            setValidationAlert(true)
+            setValidationMsg("Please fill the required fields : Name")
             return
         }
 
         if (email == "") {
-            console.log(email)
+            setValidationAlert(true)
+            setValidationMsg("Please fill the required fields : Email")
             return
         }
 
         if (role == "") {
-            console.log(role)
+            setValidationAlert(true)
+            setValidationMsg("Please fill the required fields : Roles")
             return
         }
 
@@ -62,29 +76,49 @@ const AddEditUsersModel = ({ visible, onClose, isEdit, values, refreshPage }) =>
         })
 
         if (isEdit) {
-          
-            UserService.updateUsersInfo("user_page", Number(values.id), name, email, password, updatedRoles, isEnable)
+
+            UserService.updateUsersInfo("dash_page", Number(values.id), name, email, password, updatedRoles, isEnable)
                 .then(response => {
                     swal("Success!", "Customer Updated Successfully", "success");
+                    ActivityLogsService.createLog(PAGES.USER, AuthService.getCurrentUser().name, ACTIONS.EDIT, 1)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
                     onClose(false)
                     refreshPage()
                 }).catch(error => {
                     console.log(error.response.data.message)
                     swal("Error!", error.response.data.message, "error");
+                    ActivityLogsService.createLog(PAGES.USER, AuthService.getCurrentUser().name, ACTIONS.EDIT, 0)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
                 })
         } else {
             if (password == "") {
                 console.log(password)
                 return
             }
-            UserService.createUsersInfo("user_page", name, email, password, updatedRoles, isEnable)
+            UserService.createUsersInfo("dash_page", name, email, password, updatedRoles, isEnable)
                 .then(response => {
                     swal("Success!", "Customer added Successfully", "success");
+                    ActivityLogsService.createLog(PAGES.USER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 1)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
                     onClose(false)
                     refreshPage()
                 }).catch(error => {
                     console.log(error.response.data.message)
                     swal("Error!", error.response.data.message, "error");
+                    ActivityLogsService.createLog(PAGES.USER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 0)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
                 })
         }
 
@@ -169,12 +203,18 @@ const AddEditUsersModel = ({ visible, onClose, isEdit, values, refreshPage }) =>
 
                     </CCol>
                 </CRow>
+                <CRow className='mt-3'>
+                    <CAlert color="warning" dismissible visible={validationAlert} onClose={() => setValidationAlert(false)} className="d-flex align-items-center">
+                        <CIcon icon={cilWarning} className="flex-shrink-0 me-2" width={24} height={24} />
+                        <div>{validationMsg}</div>
+                    </CAlert>
+                </CRow>
                 <div
                     className='d-grid gap-5 d-md-flex justify-content-md-around mt-5'>
                     <CButton
                         color="success"
                         style={{ color: '#fff', width: "100%" }}
-                        onClick={() => addUser()}>
+                        onClick={() => setPinVisibleModel(true)}>
                         {isEdit ? "Update" : "Save"}
                     </CButton>
                     <CButton
@@ -184,6 +224,13 @@ const AddEditUsersModel = ({ visible, onClose, isEdit, values, refreshPage }) =>
                         Cancel
                     </CButton>
                 </div>
+                <PinRequiredModel
+                    visible={pinVisibleModel}
+                    pinStatus={(status) => status ? addUser() : setPinVisibleModel(false)}
+                    onClose={(val) => setPinVisibleModel(val)} 
+                    page={PAGES.USER}
+                    action={isEdit ? "edit": "create"}
+                    />
             </CModalBody>
         </CModal>
     )

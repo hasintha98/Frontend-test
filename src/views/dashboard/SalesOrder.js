@@ -12,8 +12,15 @@ import PinRequiredModel from 'src/components/Models/PinRequiredModel'
 import SalesOrderServices from 'src/services/SalesOrderServices'
 import moment from 'moment'
 import CustomersServices from 'src/services/CustomersServices'
+import LoadingModel from 'src/components/Models/LoadingModel'
+import swal from 'sweetalert'
+import NoData from 'src/extra/NoData/NoData'
+import { PAGES } from 'src/hooks/constants'
 
 const SalesOrder = () => {
+    const [loading, setLoading] = useState(false)
+    const [loadingMsg, setLoadingMsg] = useState(null)
+
     const [visible, setVisible] = useState(false)
     const [deleteVisible, setDeleteVisible] = useState(false)
     const [visiblePinModel, setVisiblePinModel] = useState(true)
@@ -53,7 +60,7 @@ const SalesOrder = () => {
 
         if (isSearchEmpty) {
             setPage(1);
-            //retrievePlyWoodProductionList();
+            retrievePlyWoodProductionList();
             setUpdateOnRefreshPage(Math.random());
 
             ////console.log("Search is empty type ...!! ");
@@ -109,12 +116,12 @@ const SalesOrder = () => {
 
     const getCustomerDetails = () => {
         CustomersServices.getAllCustomersInfo("dash_page", 0, 10, "")
-        .then(response => {
+            .then(response => {
 
-            // const customer = response.data.customersList.find(obj => obj.id === Number(item.Orders_Data_TB.customerId));
-            setCustomers(response.data.customersList)
-         
-        })
+                // const customer = response.data.customersList.find(obj => obj.id === Number(item.Orders_Data_TB.customerId));
+                setCustomers(response.data.customersList)
+
+            })
     }
 
     const getCustomerName = (id) => {
@@ -124,7 +131,9 @@ const SalesOrder = () => {
 
 
 
-    const retrievePlyWoodProductionList = () => {
+    const retrievePlyWoodProductionList = async () => {
+        setLoading(true)
+        setLoadingMsg("Fetching Sales Orders...")
         setCheckingApi(true);
 
         const params = getRequestParams(searchTitle_Type, page, pageSize);
@@ -138,9 +147,9 @@ const SalesOrder = () => {
         var startTime = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
         var endTime = moment(endDate).format("YYYY-MM-DD HH:mm:ss");
 
-        var page_role_type = "user_page";
+        var page_role_type = "dash_page";
 
-        SalesOrderServices.getSalesList(
+        await SalesOrderServices.getSalesList(
             page_role_type,
             page_req,
             size_req,
@@ -167,6 +176,8 @@ const SalesOrder = () => {
                 setCount(totalPages);
 
                 setCheckingApi(false);
+                setLoading(false)
+                setLoadingMsg(null)
             },
             (error) => {
                 const resMessage =
@@ -180,17 +191,32 @@ const SalesOrder = () => {
                 setSalesOrderListState(false);
                 setSalesOrderList([]);
                 setCheckingApi(false);
+                setLoading(false)
+                setLoadingMsg(null)
+                if (error.response.data.message != "No Sales Order data found")
+                    swal("Error!", error.response.data.message, "error");
             }
         );
     };
 
+    let titlesObject = {
+        h1: " No Sales Orders Found. ",
+        h2: " All time ",
+        h3: " Add a new record by simply clicking the button on top right side",
+    };
+
+    var noDataContent = (
+        <>
+            <NoData Titles={titlesObject} />
+        </>
+    );
 
     const navigate = useNavigate();
-    
+
     function numberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
-    return visiblePinModel ? <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
+    return visiblePinModel ? <PinRequiredModel isNavigate={true} page={PAGES.SALES_ORDER} visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} isNavigation={true} /> : (
         <>
             <CRow>
                 <CCol>
@@ -200,10 +226,11 @@ const SalesOrder = () => {
                 <CCol className='d-flex justify-content-end gap-4'>
                     <CCol md={5}>
                         <CInputGroup >
-                            <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search here' />
-                            <CInputGroupText className='default-border' style={{ cursor: 'pointer' }}><span className="material-symbols-outlined" onClick={findByTitle}>
-                                search
-                            </span></CInputGroupText>
+                            <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Customer name / Order no' onChange={onChangeSearchTitle_Type} />
+                            <CInputGroupText className='default-border' style={{ cursor: 'pointer' }}>
+                                <span className="material-symbols-outlined" onClick={findByTitle}>
+                                    search
+                                </span></CInputGroupText>
                         </CInputGroup>
                     </CCol>
                     <CCol >
@@ -233,10 +260,9 @@ const SalesOrder = () => {
             <CRow className='mt-3'>
                 <CCol md={2}>
                     <CFormSelect className='default-border' aria-label="Default select example">
-                        <option>Bulk Action</option>
-                        <option value="1">One</option>
-                        <option value="2">Two</option>
-                        <option value="3" disabled>Three</option>
+                        <option>None</option>
+                        <option value="delete">Delete Selected</option>
+                        <option value="export">Export Selected</option>
                     </CFormSelect>
                 </CCol>
                 <CCol md={1}>
@@ -305,46 +331,47 @@ const SalesOrder = () => {
             </CRow>
 
             {/* Table */}
-
-            <CRow className='p-2 mt-4'>
-                <CTable striped>
-                    <CTableHead>
-                        <CTableRow color="info">
-                            <CTableHeaderCell scope="col" className='text-center' width={5}><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Date</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Order #</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Customer Name</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Order Status</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Amount</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Action</CTableHeaderCell>
-                        </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                        {salesOrderList?.map((item, index) => (
-                            <CTableRow key={index}>
-                                <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                                <CTableHeaderCell scope="row" className='text-center'>{moment(item.order_date).format("YYYY-MM-DD")}</CTableHeaderCell>
-                                <CTableDataCell className='text-center'>#SO{item.sop}</CTableDataCell>
-                                <CTableDataCell className='text-center'>{getCustomerName(item?.customerId)}</CTableDataCell>
-                                <CTableDataCell className='text-center'>{item.order_status}</CTableDataCell>
-                                <CTableDataCell className='text-center'>LKR {numberWithCommas(Number(item.order_sub_chargers).toFixed(2))}</CTableDataCell>
-                                <CTableDataCell className='d-flex justify-content-around'>
-                                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate(`/sales/view?id=${item.id}&sop=SO${item.sop}`)}>
-                                        edit
-                                    </span>
-                                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
-                                        delete
-                                    </span>
-                                </CTableDataCell>
+            {!isSalesOrderList ? noDataContent :
+                <CRow className='p-2 mt-4'>
+                    <CTable striped>
+                        <CTableHead>
+                            <CTableRow color="info">
+                                <CTableHeaderCell scope="col" className='text-center' width={5}><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Order #</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Date</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Customer Name</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Order Status</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Amount</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center' width={100}>Action</CTableHeaderCell>
                             </CTableRow>
-                        ))}
+                        </CTableHead>
+                        <CTableBody>
+                            {salesOrderList?.map((item, index) => (
+                                <CTableRow key={index}>
+                                    <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                                    <CTableHeaderCell scope="row" className='text-center' style={{ color: "blue", fontWeight: "800" }}>#SO{item.sop}</CTableHeaderCell>
+                                    <CTableDataCell className='text-center'>{moment(item.order_date).format("YYYY-MM-DD")} </CTableDataCell>
+                                    <CTableDataCell className='text-center'>{getCustomerName(item?.customerId)}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.order_status == 0 ? "PENDING" : item.order_status == 1 ? "DELIVERED" : "CANCELED"}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>LKR {numberWithCommas(Number(item.order_sub_chargers).toFixed(2))}</CTableDataCell>
+                                    <CTableDataCell className='d-flex justify-content-around'>
+                                        <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                                            onClick={() => navigate(`/sales/view?id=${item.id}&sop=SO${item.sop}`)}>
+                                            visibility
+                                        </span>
+                                        <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
+                                            delete
+                                        </span>
+                                    </CTableDataCell>
+                                </CTableRow>
+                            ))}
 
 
 
-                    </CTableBody>
-                </CTable>
-            </CRow>
-
+                        </CTableBody>
+                    </CTable>
+                </CRow>
+            }
             <CRow>
                 <CCol md={1}></CCol>
                 <CCol className="d-flex justify-content-end" >
@@ -393,9 +420,10 @@ const SalesOrder = () => {
 
                 </CCol>
             </CRow>
-            <RecordDeleteModel visible={deleteVisible} onClose={(val) => setDeleteVisible(val)} recordId={"#5765"} />
+            <RecordDeleteModel page={PAGES.SALES_ORDER} visible={deleteVisible} onClose={(val) => setDeleteVisible(val)} recordId={"#5765"} />
             {/* <SendEmailModel visible={visible} onClose={(val) => setVisible(val)} recordId={"#5765"}/> */}
             <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
+            <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
         </>
     )
 }

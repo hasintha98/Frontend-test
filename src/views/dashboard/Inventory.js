@@ -1,17 +1,26 @@
 import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CFormCheck, CFormInput, CFormLabel, CFormSelect, CInputGroup, CInputGroupText, CModal, CModalBody, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
+import AddEditRawMatModel from 'src/components/Models/AddEditRawMatModel';
 import ExportModel from 'src/components/Models/ExportModel';
+import LoadingModel from 'src/components/Models/LoadingModel';
 import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
 import StockUpdateModel from 'src/components/Models/StockUpdateModel';
 import NoData from 'src/extra/NoData/NoData';
+import { PAGES } from 'src/hooks/constants';
 import RawMaterialService from 'src/services/RawMaterialService';
 import swal from 'sweetalert';
 
 const Inventory = () => {
+
+  const [loading, setLoading] = useState(false)
+  const [loadingMsg, setLoadingMsg] = useState(null)
+
   const [visible, setVisible] = useState(false)
   const [visiblePinModel, setVisiblePinModel] = useState(true)
+  const [modelIsEdit, setModelIsEdit] = useState(false)
+  const [editVisible, setEditVisible] = useState(false)
   const [deleteVisible, setDeleteVisible] = useState(false)
   const [updateVisible, setUpdateVisible] = useState(false)
   const search = useLocation().search
@@ -84,7 +93,9 @@ const Inventory = () => {
     return params;
   };
 
-  const retrieveRawMaterialList = () => {
+  const retrieveRawMaterialList = async () => {
+    setLoading(true)
+    setLoadingMsg("Fetching Raw Materials...")
     setCheckingApi(true);
 
     const params = getRequestParams(searchTitle, page, pageSize);
@@ -97,7 +108,7 @@ const Inventory = () => {
 
     var page_role_type = "dash_page";
 
-    RawMaterialService.getRawMaterialList(
+    await RawMaterialService.getRawMaterialList(
       page_role_type,
       page_req,
       size_req,
@@ -109,28 +120,22 @@ const Inventory = () => {
         const { rawMatList, totalPages, currentPage } = response.data;
         console.log(response.data)
         if (rawMatList && totalPages) {
-          var revRawMatList = rawMatList;//.reverse();
-
-          //console.log({ revRawMatList });
-          // setPage(currentPage)
+          var revRawMatList = rawMatList;
           setRawMaterialList(revRawMatList);
           setCount(totalPages);
           setRawMaterialsState(true);
         }
 
         setCheckingApi(false);
+        setLoading(false)
+        setLoadingMsg(null)
       },
       (error) => {
-        // const resMessage =
-        //   (error.response &&
-        //     error.response.data &&
-        //     error.response.data.message) ||
-        //   error.message ||
-        //   error.toString();
-
-        //console.log("login in error ", resMessage);
         setRawMaterialsState(false);
         setCheckingApi(false);
+        setLoading(false)
+        setLoadingMsg(null)
+        swal("Error!", error.response.data.message, "error");
       }
     );
   };
@@ -157,7 +162,7 @@ const Inventory = () => {
   }
 
   let titlesObject = {
-    h1: isCheckingApi ? "Checking New Data.." : " No Raw Materials  Found. ",
+    h1: " No Raw Materials  Found. ",
     h2: " All time ",
     h3: " Add a new record by simply clicking the button on top right side",
   };
@@ -170,7 +175,7 @@ const Inventory = () => {
 
 
   const deleteRawMaterial = () => {
-    RawMaterialService.deleteRawMaterialRecord("user_page", [Number(deleteItem.id)])
+    RawMaterialService.deleteRawMaterialRecord("dash_page", [Number(deleteItem.id)])
       .then(response => {
         swal("Success!", "Raw Material Deleted Successfully", "success");
         setRefreshPage(!refreshPage)
@@ -181,14 +186,14 @@ const Inventory = () => {
   }
 
   const navigate = useNavigate();
-  return visiblePinModel ? <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
+  return visiblePinModel ? <PinRequiredModel isNavigate={true} page={PAGES.RAW_MATERIAL} visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} isNavigation={true} /> : (
     <>
       <CRow>
         <CCol>
 
           <CDropdown style={{ cursor: 'pointer' }}>
             <CDropdownToggle style={{ fontSize: "1.5em", fontWeight: "bold", backgroundColor: '#fff', border: 0 }} color="secondary">
-              {selectedMenu == 'plywood' ? 'PlyWood' : (selectedMenu == 'raw' ? 'Row Material' : 'Others')}
+              {selectedMenu == 'plywood' ? 'PlyWood' : (selectedMenu == 'raw' ? 'Raw Materials' : 'Others')}
             </CDropdownToggle>
             <CDropdownMenu >
               <CDropdownItem value={"plywood"} active={selectedMenu == 'plywood' ? true : false} onClick={() => handleSelectedMenu("plywood")}>PlyWood</CDropdownItem>
@@ -216,7 +221,7 @@ const Inventory = () => {
                   </span></CInputGroupText>
               </CInputGroup>}
           </CCol>
-          <CCol >
+          <CCol md={3}>
             <CButton
               role="button"
               className='blue-button'
@@ -227,16 +232,17 @@ const Inventory = () => {
                 download
               </span>{' '}Export</CButton>
           </CCol>
-          <CCol>
+          {/* <CCol>
             <CButton
               color="success"
               className='default-border'
               variant="outline"
               style={{ fontSize: "1em", fontWeight: '600', width: "100%" }}
+              disabled
               onClick={() => navigate('/inventory/add-plywood')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                 add
               </span>{' '}Update</CButton>
-          </CCol>
+          </CCol> */}
         </CCol>
       </CRow>
 
@@ -251,7 +257,7 @@ const Inventory = () => {
         <CCol md={1}>
           <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Apply</CButton>
         </CCol>
-        <CCol md={2}>
+        {/* <CCol md={2}>
           <CFormSelect className='default-border' aria-label="Default select example">
             <option>Production</option>
             <option value="1">One</option>
@@ -272,7 +278,7 @@ const Inventory = () => {
         </CCol>
         <CCol md={1}>
           <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Filter</CButton>
-        </CCol>
+        </CCol> */}
 
         <CCol className="d-flex justify-content-end">
           <CRow>
@@ -322,7 +328,7 @@ const Inventory = () => {
                 <CTableHeaderCell scope="col" className='text-center'>Product</CTableHeaderCell>
                 <CTableHeaderCell scope="col" className='text-center'>Stock on Hand</CTableHeaderCell>
                 <CTableHeaderCell scope="col" className='text-center'>Warnings</CTableHeaderCell>
-                <CTableHeaderCell scope="col" className='text-center'>Action</CTableHeaderCell>
+                <CTableHeaderCell scope="col" className='text-center' width={200}>Action</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
             <CTableBody>
@@ -351,7 +357,13 @@ const Inventory = () => {
                       }}>
                       download_for_offline
                     </span> : null}
-                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
+                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        setSelectedProduct(item)
+
+                        setModelIsEdit(true)
+                        setEditVisible(true)
+                      }}>
                       edit
                     </span>
                     <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
@@ -421,13 +433,22 @@ const Inventory = () => {
 
         </CCol>
       </CRow>
+      <AddEditRawMatModel
+        visible={editVisible}
+        onClose={(val) => setEditVisible(val)}
+        product={selectedProduct}
+        isEdit={modelIsEdit}
+        refreshPage={() => setRefreshPage(!refreshPage)}
+      />
       <RecordDeleteModel visible={deleteVisible}
         onClose={(val, auth) => {
           if (auth == "AUTHENTICATED") deleteRawMaterial()
           setDeleteVisible(val)
         }
         }
-        recordId={`#RM${deleteItem?.sku}`} />
+        recordId={`#RM${deleteItem?.sku}`}
+        page={PAGES.RAW_MATERIAL}
+      />
       <StockUpdateModel
         visible={updateVisible}
         onClose={(val) => setUpdateVisible(val)}
@@ -436,6 +457,7 @@ const Inventory = () => {
         refreshPage={() => setRefreshPage(!refreshPage)}
         type={"raw"} />
       <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
+      <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
     </>
   )
 }

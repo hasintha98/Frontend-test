@@ -10,6 +10,7 @@ import 'simplebar/dist/simplebar.min.css'
 
 // sidebar nav config
 import navigation, { _bottomNav, _midNav } from '../_nav'
+import AuthService from 'src/services/AuthService'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
@@ -27,12 +28,16 @@ const AppSidebar = () => {
       }}
     >
       <CSidebarBrand className="d-none d-md-flex bg-sidebar-header-left" to="/">
-        <h4 style={{fontWeight: 700}}><span style={{color: '#00965E'}}>Riviruply</span> <span style={{color: '#2C363B'}}>Inventory</span></h4>
+        <h4 style={{ fontWeight: 700 }}><span style={{ color: '#00965E' }}>Riviruply</span> <span style={{ color: '#2C363B' }}>Inventory</span></h4>
         {/* <CIcon className="sidebar-brand-narrow" icon={sygnet} height={35} /> */}
       </CSidebarBrand>
       <CSidebarNav>
         <SimpleBar >
-          <AppSidebarNav className="bg-sidebar-row" items={navigation} />
+          <AppSidebarNav className="bg-sidebar-row" items={
+            AuthService.getCurrentUser().roles.includes("ROLE_ADMIN", "ROLE_SUPERADMIN") ?
+              navigation :
+              navigation.filter((e) => { return e.name !== 'User Accounts' }) 
+          } />
         </SimpleBar>
       </CSidebarNav>
       {/* <CSidebarNav>
@@ -42,8 +47,8 @@ const AppSidebar = () => {
           <AppSidebarNav className="bg-sidebar-row" items={_bottomNav} />
         </SimpleBar>
       </CSidebarNav> */}
-      
-   
+
+
     </CSidebar>
   )
 }

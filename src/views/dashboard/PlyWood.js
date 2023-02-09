@@ -2,25 +2,38 @@ import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import ExportModel from 'src/components/Models/ExportModel';
+import LoadingModel from 'src/components/Models/LoadingModel';
 import PinRequiredModel from 'src/components/Models/PinRequiredModel';
+import PlyWoodConvertModel from 'src/components/Models/PlyWoodConvertModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
 import StockUpdateModel from 'src/components/Models/StockUpdateModel';
 import NoData from 'src/extra/NoData/NoData';
+import { ACTIONS, PAGES } from 'src/hooks/constants';
+import ActivityLogsService from 'src/services/ActivityLogsService';
+import AuthService from 'src/services/AuthService';
 import PlyWoodTypesServices from 'src/services/PlyWoodTypesServices';
 import RawMaterialService from 'src/services/RawMaterialService';
 import swal from 'sweetalert';
 
 const PlyWood = () => {
+    const [loading, setLoading] = useState(false)
+    const [loadingMsg, setLoadingMsg] = useState(null)
+
     const [visible, setVisible] = useState(false)
     const [visiblePinModel, setVisiblePinModel] = useState(true)
     const [deleteVisible, setDeleteVisible] = useState(false)
     const [updateVisible, setUpdateVisible] = useState(false)
+    const [convertVisible, setConvertVisible] = useState(false)
     const [page, setPage] = useState(1)
     const [pageSize, setPageSize] = useState(10);
     const pageSizes = [10, 15, 20];
     const [plyWoodTypeList, setPlyWoodTypeList] = useState([]);
     const [deleteItem, setDeleteItem] = useState(null)
     const [typeprofilesList, setTypeprofilesList] = useState([]);
+
+    const [stock_for_convert, setStock_for_convert] = useState(null)
+    const [id_for_convert, setId_for_convert] = useState(null)
+    const [plywoodItem_for_convert, setPlywoodItem_for_convert] = useState(null)
 
     const plyWoodTypesRef = useRef();
     plyWoodTypesRef.current = plyWoodTypeList;
@@ -106,8 +119,11 @@ const PlyWood = () => {
 
         return params;
     };
-    const retrievePlyWoodTypeList = () => {
+    const retrievePlyWoodTypeList = async () => {
         setCheckingApi(true);
+
+        setLoadingMsg("Fetching Plywood Types...")
+        setLoading(true)
 
         const params = getRequestParams(
             searchTitle_Type,
@@ -129,7 +145,7 @@ const PlyWood = () => {
 
         var page_role_type = "dash_page";
 
-        PlyWoodTypesServices.getPlyWoodTypesList(
+        await PlyWoodTypesServices.getPlyWoodTypesList(
             page_role_type,
             page_req,
             size_req,
@@ -190,6 +206,8 @@ const PlyWood = () => {
                     setPlyWoodTypesState(true);
                 }
                 setCheckingApi(false);
+                setLoadingMsg(null)
+                setLoading(false)
             },
             (error) => {
                 const resMessage =
@@ -202,6 +220,9 @@ const PlyWood = () => {
                 //console.log("login in error ", resMessage);
                 setPlyWoodTypesState(false);
                 setCheckingApi(false);
+                setLoadingMsg(null)
+                setLoading(false)
+                swal("Error!", error.response.data.message, "error");
             }
         );
     };
@@ -228,7 +249,7 @@ const PlyWood = () => {
     }
 
     let titlesObject = {
-        h1: isCheckingApi ? "Checking New Data.." : " No Raw Materials  Found. ",
+        h1: " No Plywood Types Found. ",
         h2: " All time ",
         h3: " Add a new record by simply clicking the button on top right side",
     };
@@ -240,18 +261,33 @@ const PlyWood = () => {
     );
 
     const deletePlywood = () => {
-        PlyWoodTypesServices.deletePlyWoodTypesRecord("user_page", [Number(deleteItem.id)])
+        PlyWoodTypesServices.deletePlyWoodTypesRecord("dash_page", [Number(deleteItem.id)])
             .then(response => {
                 swal("Success!", "PlyWood Type Deleted Successfully", "success");
+                ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.DELETE, 1)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
                 setRefreshPage(!refreshPage)
             }).catch(error => {
                 console.log(error.response.data.message)
                 swal("Error!", error.response.data.message, "error");
+                ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.DELETE, 0)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
             })
     }
 
+    const handleConvertModel = (item) => {
+        setPlywoodItem_for_convert(item)
+        setConvertVisible(true)
+    }
+
     const navigate = useNavigate();
-    return visiblePinModel ? <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
+    return visiblePinModel ? <PinRequiredModel isNavigate={true} page={PAGES.PLYWOOD} visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} isNavigation={true} /> : (
         <>
             <CRow>
                 <CCol>
@@ -298,7 +334,7 @@ const PlyWood = () => {
                             style={{ fontSize: "1em", fontWeight: '600', width: "100%" }}
                             onClick={() => navigate('/inventory/add-plywood')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                                 add
-                            </span>{' '}Update</CButton>
+                            </span>{' '}New</CButton>
                     </CCol>
                 </CCol>
             </CRow>
@@ -314,7 +350,7 @@ const PlyWood = () => {
                 <CCol md={1}>
                     <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Apply</CButton>
                 </CCol>
-                <CCol md={2}>
+                {/* <CCol md={2}>
                     <CFormSelect className='default-border' aria-label="Default select example">
                         <option>Production</option>
                         <option value="1">One</option>
@@ -335,7 +371,7 @@ const PlyWood = () => {
                 </CCol>
                 <CCol md={1}>
                     <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" >Filter</CButton>
-                </CCol>
+                </CCol> */}
 
                 <CCol className="d-flex justify-content-end">
                     <CRow>
@@ -385,7 +421,7 @@ const PlyWood = () => {
                                 <CTableHeaderCell scope="col" className='text-center'>Type</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Stock on Hand</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Warnings</CTableHeaderCell>
-                                <CTableHeaderCell scope="col" className='text-center'>Action</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center' width={200}>Action</CTableHeaderCell>
                             </CTableRow>
                         </CTableHead>
                         <CTableBody>
@@ -393,13 +429,18 @@ const PlyWood = () => {
                                 <CTableRow key={key}>
                                     <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
                                     <CTableHeaderCell scope="row" className='text-center' style={{ color: "blue", fontWeight: "800" }}>{"#PW" + item.sku.toString()}</CTableHeaderCell>
-                                    <CTableDataCell className='text-center'>{item.sku}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.size}mm</CTableDataCell>
                                     <CTableDataCell className='text-center'>{item.type}</CTableDataCell>
                                     <CTableDataCell className='text-center'>{Math.floor(item.stock * 1e3) / 1e3}</CTableDataCell>
-                                    <CTableDataCell className='text-center'>{
-                                        stockGenarator(item.limit, item.stock)
-                                    }</CTableDataCell>
+                                    <CTableDataCell className='text-center'>
+                                        {
+                                            stockGenarator(item.limit, item.stock)
+                                        }</CTableDataCell>
                                     <CTableDataCell className='d-flex justify-content-around'>
+                                        {!item.type.includes("G2") ? <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                                            onClick={() => handleConvertModel(item)}>
+                                            trending_up
+                                        </span> : <span></span>}
                                         <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
                                             onClick={() => {
                                                 setSelectedProduct(item)
@@ -408,7 +449,8 @@ const PlyWood = () => {
                                             }}>
                                             upgrade
                                         </span>
-                                        <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate('/production/edit')}>
+                                        <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                                            onClick={() => navigate(`/inventory/add-plywood?id=${item.id}`)}>
                                             edit
                                         </span>
                                         <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
@@ -484,7 +526,9 @@ const PlyWood = () => {
                     setDeleteVisible(val)
                 }
                 }
-                recordId={`#PW${deleteItem?.sku}`} />
+                recordId={`#PW${deleteItem?.sku}`}
+                page={PAGES.PLYWOOD}
+            />
             <StockUpdateModel
                 visible={updateVisible}
                 onClose={(val) => setUpdateVisible(val)}
@@ -493,6 +537,13 @@ const PlyWood = () => {
                 refreshPage={() => setRefreshPage(!refreshPage)}
                 type={"plywood"} />
             <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
+            <PlyWoodConvertModel
+                visible={convertVisible}
+                onClose={(val) => setConvertVisible(val)}
+                item={plywoodItem_for_convert}
+                refreshPage={() => setRefreshPage(!refreshPage)}
+            />
+            <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
         </>
     )
 }

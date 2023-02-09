@@ -12,7 +12,7 @@ const NoData = ({Titles}) => {
 
 const content = (
   <>
-    <div className="empty-state">
+    <div className="empty-state mt-5 mb-5">
       <div className="empty-state__content">
         <div className="empty-state__icon">
           <img

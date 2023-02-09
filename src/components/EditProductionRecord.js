@@ -2,6 +2,10 @@ import { CAlert, CButton, CCol, CFormInput, CFormLabel, CModal, CModalBody, CRow
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { PAGES, ACTIONS } from 'src/hooks/constants'
+import ActivityLogsService from 'src/services/ActivityLogsService'
+import AuthService from 'src/services/AuthService'
+import PermissionsService from 'src/services/PermissionsService'
 import ProductionService from 'src/services/ProductionService'
 import swal from 'sweetalert'
 
@@ -18,7 +22,7 @@ const EditProductionRecord = () => {
     const [type, setType] = useState("")
     const [qty, setQty] = useState(null)
     const [id, setId] = useState("")
-
+    const [pin, setPin] = useState("")
     const search = useLocation().search
 
     useEffect(() => {
@@ -37,22 +41,78 @@ const EditProductionRecord = () => {
     ]
 
     const submitProductionDetails = () => {
-        ProductionService.updateProductionRecord("Production",Number(id), date, Number(size), inputValue, Number(qty)).then(response => {
+        ProductionService.updateProductionRecord("dash_page",Number(id), date, Number(size), inputValue, Number(qty)).then(response => {
             setAlert(true)
             clearFields()
             console.log(response)
             setSuccessRecordId(response.data.pid)
+            ActivityLogsService.createLog(PAGES.Production, AuthService.getCurrentUser().name, ACTIONS.EDIT, 1)
+            .catch((error) => {
+                console.log(error)
+                swal("Error!", "Something Went Wrong With Logging", "error");
+            })
         }).catch(error => {
             console.log(error.response.data.message)
             setAlert(false)
             swal("Error!", error.response.data.message, "error");
+            ActivityLogsService.createLog(PAGES.Production, AuthService.getCurrentUser().name, ACTIONS.EDIT, 0)
+            .catch((error) => {
+                console.log(error)
+                swal("Error!", "Something Went Wrong With Logging", "error");
+            })
         }) 
     }
 
-    const handleKeypress = e => {
+    const handleKeypress = async e => {
         if (e.key === 'Enter') {
-            submitProductionDetails();
-            setVisible(false)
+            let auth = false
+            const roles = AuthService.getCurrentUser().roles.map(role => {
+                return role.replace("ROLE_", "").toLowerCase()
+            })
+            let access = null
+            const newRoles = []
+            await PermissionsService.getPermissionList("dash_page")
+                .then(response => {
+                    const { PageAccessList } = response.data
+                    const accessItem = PageAccessList.find(o => o.page_name === PAGES.Production)
+                    access = accessItem
+                    if (roles.includes("admin") && accessItem.edit_admin == 1) {
+                        auth = true
+                        newRoles.push("admin")
+                    }
+                    if (roles.includes("moderator") && accessItem.edit_mod == 1) {
+                        auth = true
+                        newRoles.push("moderator")
+                    } 
+                })
+            if (auth) {
+                await PermissionsService.actionPinCodeAuth(newRoles, pin)
+                    .then(response => {
+                        submitProductionDetails();
+                        setVisible(false)
+                        setPin("")
+                    }).catch(error => {
+                        setPin("")
+                        swal("Error!", error.response.data.message, "error");
+    
+                    })
+            } else {
+                if(access["edit_admin"] == 1) {
+                    await PermissionsService.actionPinCodeAuth(['admin'], pin)
+                    .then(response => {
+                        submitProductionDetails();
+                        setVisible(false)
+                        setPin("")
+                    }).catch(error => {
+                        setPin("")
+                        swal("Error!", "Unauthorized. Please Enter Admin Pin Code", "error");
+                    })
+                }
+                setPin("")
+                swal("Error!", "Unauthorized", "error");
+            }
+    
+         
         }
     };
 

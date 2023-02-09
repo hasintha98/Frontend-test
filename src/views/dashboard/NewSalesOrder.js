@@ -1,6 +1,11 @@
 import { CButton, CCol, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import LoadingModel from 'src/components/Models/LoadingModel';
+import PinRequiredModel from 'src/components/Models/PinRequiredModel';
+import { ACTIONS, PAGES } from 'src/hooks/constants';
+import ActivityLogsService from 'src/services/ActivityLogsService';
+import AuthService from 'src/services/AuthService';
 import CustomersServices from 'src/services/CustomersServices';
 import PlyWoodTypesServices from 'src/services/PlyWoodTypesServices';
 import SalesOrderServices from 'src/services/SalesOrderServices';
@@ -10,6 +15,9 @@ import SalesOrder from './SalesOrder';
 const NewSalesOrder = () => {
     const navigate = useNavigate();
 
+    const [loading, setLoading] = useState(false)
+    const [loadingMsg, setLoadingMsg] = useState(null)
+    const [pinVisibleModel, setPinVisibleModel] = useState(false)
     const [customerName, setCustomerName] = useState("")
     const [deliveryDate, setDeliveryDate] = useState(new Date())
     const [orderDate, setOrderDate] = useState(new Date())
@@ -37,7 +45,7 @@ const NewSalesOrder = () => {
     }, [])
 
     const getCustomerList = () => {
-        CustomersServices.getAllCustomersInfo("user_page", 0, 10, "")
+        CustomersServices.getAllCustomersInfo("dash_page", 0, 10, "")
             .then(response => {
                 const { customersList, totalPages } = response.data;
 
@@ -70,26 +78,31 @@ const NewSalesOrder = () => {
             })
     }
 
-    const getPlyWoodTypes = () => {
-        PlyWoodTypesServices.getPlyWoodTypesListAll("dash_page", "dash_page")
+    const getPlyWoodTypes = async () => {
+        setLoading(true)
+        setLoadingMsg("Loading Plywood Types...")
+
+        await PlyWoodTypesServices.getPlyWoodTypesListAll("dash_page", "dash_page")
             .then(response => {
                 const filteredArray = response.data.plyWoodsInfoAll.map(item => {
                     return { id: item.id, label: `${item.type} - ${item.size}mm`, type: item.type, size: item.size }
                 })
                 setPlywoodList(filteredArray)
+                setLoading(false)
+                setLoadingMsg(null)
+            })
+            .catch(error => {
+                setLoading(false)
+                setLoadingMsg(null)
+                swal("Error!", error.response.data.message, "error");
             })
 
     }
 
-    console.log(plywoodList)
-
     const handlePlyWoodType = (id) => {
         const item = plywoodList.find(obj => obj.id === Number(id));
+        console.log(item)
         setItemDetails(item)
-
-        //    setPlywoodList(oldValues => {
-        //     return oldValues.filter(item => item.id !== Number(id))
-        //   })
     }
 
 
@@ -105,6 +118,7 @@ const NewSalesOrder = () => {
         if (rate <= 0) {
             return
         }
+
         const total = (parseFloat(qty) * parseFloat(rate)) - (parseFloat(qty) * parseFloat(rate) * parseFloat(discount)) / 100 + (parseFloat(qty) * parseFloat(rate) * parseFloat(tax)) / 100
 
         setItems([...items, {
@@ -124,7 +138,7 @@ const NewSalesOrder = () => {
 
     console.log(items)
 
-    const handleOrderSubmit = () => {
+    const handleOrderSubmit = async () => {
         if (customerName == "") {
             return
         }
@@ -133,17 +147,32 @@ const NewSalesOrder = () => {
 
         }
 
-        SalesOrderServices.createNewSalesOrder("user_page", orderDate, deliveryDate, deliveryMethod, subTotal, deliveryCharge, orderExtraCharge, note, customerName, items)
+        setLoading(true)
+        setLoadingMsg("Creating Sales Order...")
+
+        await SalesOrderServices.createNewSalesOrder("dash_page", orderDate, deliveryDate, deliveryMethod, subTotal, deliveryCharge, orderExtraCharge, note, customerName, items)
             .then(response => {
-                console.log(response)
-                
+                setLoading(false)
+                setLoadingMsg(null)
                 //swal("Success!", error.response.data.message, "error");
+                ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 1)
+                .catch((error) => {
+                    console.log(error)
+                    swal("Error!", "Something Went Wrong With Logging", "error");
+                })
                 swal("Success!", "Sales Order Created Successfully", "success").then((value) => {
                     navigate('/sales')
-                  });
+                });
             }).catch(error => {
                 console.log(error.response.data.message)
+                setLoading(false)
+                setLoadingMsg(null)
                 swal("Error!", error.response.data.message, "error");
+                ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 0)
+                .catch((error) => {
+                    console.log(error)
+                    swal("Error!", "Something Went Wrong With Logging", "error");
+                })
             })
 
     }
@@ -164,7 +193,6 @@ const NewSalesOrder = () => {
         setTax(0)
     }
 
-    console.log(items)
     let subTotal = 0
     items.forEach(item => {
         subTotal = parseFloat(subTotal) + parseFloat(item.total)
@@ -276,7 +304,7 @@ const NewSalesOrder = () => {
                         ))}
                         <CTableRow>
                             <CTableDataCell className='text-center'>
-                                <CFormSelect onChange={(e) => handlePlyWoodType(e.target.value)} value={itemDetails} aria-label="Default select example">
+                                <CFormSelect onChange={(e) => handlePlyWoodType(e.target.value)} aria-label="Default select example">
                                     <option>Type or click to select an item</option>
                                     {plywoodList.map((item, index) => (
                                         <option key={index} value={item.id}>{item.label}</option>
@@ -366,7 +394,7 @@ const NewSalesOrder = () => {
                             role="button"
                             color='success'
                             style={{ width: "100%", color: '#fff' }}
-                            onClick={handleOrderSubmit}
+                            onClick={() => setPinVisibleModel(true)}
                         >Save</CButton>
                     </CCol>
                     <CCol md={2}>
@@ -380,6 +408,14 @@ const NewSalesOrder = () => {
 
                 </CCol>
             </CRow>
+            <PinRequiredModel
+                visible={pinVisibleModel}
+                pinStatus={(status) => status ? handleOrderSubmit() : setPinVisibleModel(false)}
+                onClose={(val) => setPinVisibleModel(val)} 
+                page={PAGES.SALES_ORDER}
+                action={"create"}
+                />
+            <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
         </>
     )
 }

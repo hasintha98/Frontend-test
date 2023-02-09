@@ -16,13 +16,21 @@ import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 import ProductionService from 'src/services/ProductionService';
 import PlyWoodTypesServices from 'src/services/PlyWoodTypesServices';
 import swal from 'sweetalert';
+import LoadingModel from 'src/components/Models/LoadingModel';
+import NoData from 'src/extra/NoData/NoData';
+import { ACTIONS, PAGES } from 'src/hooks/constants';
+import AuthService from 'src/services/AuthService';
+import ActivityLogsService from 'src/services/ActivityLogsService';
 
 const Production = () => {
+    const [loading, setLoading] = useState(false)
+    const [loadingMsg, setLoadingMsg] = useState(null)
+
     const [visible, setVisible] = useState(false)
     const [deleteVisible, setDeleteVisible] = useState(false)
     const [visiblePinModel, setVisiblePinModel] = useState(true)
-    const [startDate, setStartDate] = useState(new Date().setMonth(new Date().getMonth() - 4))
-    const [endDate, setEndDate] = useState(new Date())
+    const [startDate, setStartDate] = useState(new Date().setMonth(new Date().getMonth() - 10))
+    const [endDate, setEndDate] = useState(new Date().setMonth(new Date().getMonth() + 1))
     const [deleteItem, setDeleteItem] = useState(null)
     const [refreshPage, setRefreshPage] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState(null)
@@ -50,8 +58,9 @@ const Production = () => {
         retrievePlyWoodProductionList()
     }, [page, pageSize, updateOnRefReshPage])
 
-    const retrievePlyWoodProductionList = () => {
-
+    const retrievePlyWoodProductionList = async () => {
+        setLoading(true)
+        setLoadingMsg("Fetching Productions...")
         setCheckingApi(true);
 
         const params = getRequestParams(
@@ -75,7 +84,7 @@ const Production = () => {
 
         var page_role_type = "dash_page";
 
-        ProductionService.getAllProductionRecordsList(
+        await ProductionService.getAllProductionRecordsList(
             page_role_type,
             page_req,
             size_req,
@@ -101,6 +110,8 @@ const Production = () => {
 
 
                 setCheckingApi(false);
+                setLoading(false)
+                setLoadingMsg(null)
             },
             (error) => {
                 // const resMessage =
@@ -115,6 +126,10 @@ const Production = () => {
                 setPlyWoodProductionList([]);
 
                 setCheckingApi(false);
+                setLoading(false)
+                setLoadingMsg(null)
+                if (error.response.data.message != "No Production records data found")
+                    swal("Error!", error.response.data.message, "error");
             }
         );
     };
@@ -199,47 +214,86 @@ const Production = () => {
     }
 
     const deleteProduction = () => {
-        PlyWoodTypesServices.deletePlyWoodTypesRecord("user_page", [Number(deleteItem.id)])
+        PlyWoodTypesServices.deletePlyWoodTypesRecord("dash_page", [Number(deleteItem.id)])
             .then(response => {
                 swal("Success!", "Production Deleted Successfully", "success");
+                ActivityLogsService.createLog(PAGES.Production, AuthService.getCurrentUser().name, ACTIONS.DELETE, 1)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
                 setRefreshPage(!refreshPage)
             }).catch(error => {
                 console.log(error.response.data.message)
                 swal("Error!", error.response.data.message, "error");
+                ActivityLogsService.createLog(PAGES.Production, AuthService.getCurrentUser().name, ACTIONS.DELETE, 0)
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
             })
     }
 
-    return visiblePinModel ? <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
+    let titlesObject = {
+        h1: " No Production records Found. ",
+        h2: " All time ",
+        h3: " Add a new record by simply clicking the button on top right side",
+    };
+
+    var noDataContent = (
+        <>
+            <NoData Titles={titlesObject} />
+        </>
+    );
+
+    return visiblePinModel ? <PinRequiredModel isNavigate={true} page={PAGES.Production} visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} isNavigation={true} /> : (
         <>
             <CRow>
-                <CCol>
-                    <CRow>
-                        <CCol md={6}>
-                            <CInputGroup >
-                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Production' onChange={onChangeSearchTitle_Size} />
-                                <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Type' onChange={onChangeSearchTitle_Type} />
-                                <CInputGroupText className='default-border' style={{ cursor: 'pointer' }}>
-                                    <span className="material-symbols-outlined" onClick={findByTitle}>
-                                        search
-                                    </span></CInputGroupText>
-                            </CInputGroup>
-                        </CCol>
 
-                        <CCol>
-                            <CButton
-                                role="button"
-                                className='blue-button'
-                                // style={{color:"#2F5597"}}
-                                variant="outline"
-                                onClick={() => setVisible(true)}
-                            ><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
-                                    download
-                                </span>{' '}Export</CButton>
-                        </CCol>
-                    </CRow>
+
+                <CCol
+                    md={6}>
+
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Production</span>
+                </CCol>
+                <CCol className='d-flex justify-content-end gap-4'>
+                    <CCol md={7}>
+                        <CInputGroup >
+                            <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Production' onChange={onChangeSearchTitle_Size} />
+                            <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Type' onChange={onChangeSearchTitle_Type} />
+                            <CInputGroupText className='default-border' style={{ cursor: 'pointer' }}>
+                                <span className="material-symbols-outlined" onClick={findByTitle}>
+                                    search
+                                </span></CInputGroupText>
+                        </CInputGroup>
+                    </CCol>
+                    <CCol>
+                        <CButton
+                            role="button"
+                            className='blue-button'
+                            // style={{color:"#2F5597"}}
+                            variant="outline"
+                            onClick={() => setVisible(true)}
+                        ><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+                                download
+                            </span>{' '}Export</CButton>
+                    </CCol>
+                    <CCol>
+                    <CButton
+                        color="success"
+                        className='default-border'
+                        variant="outline"
+                        style={{ fontSize: "1em", fontWeight: '600' }}
+                        onClick={() => navigate('/production/add')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+                            add
+                        </span>{' '}Add New</CButton>
+                    </CCol>
                 </CCol>
 
-                <CCol className="d-flex flex-row-reverse mb-5">
+
+
+{/* 
+                <CCol md={2} className="d-flex flex-row-reverse mb-5">
 
                     <CButton
                         color="success"
@@ -249,16 +303,15 @@ const Production = () => {
                         onClick={() => navigate('/production/add')}><span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                             add
                         </span>{' '}Add New</CButton>
-                </CCol>
+                </CCol> */}
             </CRow>
-            <CRow>
+            <CRow className='mt-4'>
 
                 <CCol md={3}>
                     <CFormSelect className='default-border' aria-label="Default select example">
-                        <option>Bulk Action</option>
-                        <option value="1">One</option>
-                        <option value="2">Two</option>
-                        <option value="3" disabled>Three</option>
+                        <option>None</option>
+                        <option value="delete">Delete Selected</option>
+                        <option value="export">Export Selected</option>
                     </CFormSelect>
                 </CCol>
                 <CCol md={1}>
@@ -313,52 +366,53 @@ const Production = () => {
                     </CRow>
                 </CCol>
             </CRow>
-
-            <CRow className='p-2 mt-4'>
-                <CTable striped>
-                    <CTableHead>
-                        <CTableRow color="info">
-                            <CTableHeaderCell scope="col"><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Id</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Date</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Production</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Type</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Qty</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Action</CTableHeaderCell>
-                        </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                        {plyWoodProductionList.map((item, index) => (
-                            <CTableRow key={index}>
-                                <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                                <CTableHeaderCell scope="row">#PIN{item.pin}</CTableHeaderCell>
-                                <CTableDataCell>{item.date}</CTableDataCell>
-                                <CTableDataCell>{item.size}mm</CTableDataCell>
-                                <CTableDataCell>{item.type}</CTableDataCell>
-                                <CTableDataCell>{item.qty}</CTableDataCell>
-                                <CTableDataCell className='d-flex justify-content-around'>
-                                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
-                                        onClick={() => navigate(`/production/edit?pin=${item.pin}&date=${moment(new Date(item.date)).format('YYYY-MM-DDTHH:mm')}&size=${item.size}&type=${item.type}&qty=${item.qty}`)}>
-                                        edit
-                                    </span>
-                                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
-                                        onClick={
-                                            () => {
-                                                setDeleteItem(item)
-                                                setDeleteVisible(true)
-                                            }}
-                                    >
-                                        delete
-                                    </span>
-                                </CTableDataCell>
+            {!isPlyWoodProductions ? noDataContent :
+                <CRow className='p-2 mt-4'>
+                    <CTable striped>
+                        <CTableHead>
+                            <CTableRow color="info">
+                                <CTableHeaderCell scope="col"><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
+                                <CTableHeaderCell scope="col">Id</CTableHeaderCell>
+                                <CTableHeaderCell scope="col">Date</CTableHeaderCell>
+                                <CTableHeaderCell scope="col">Production</CTableHeaderCell>
+                                <CTableHeaderCell scope="col">Type</CTableHeaderCell>
+                                <CTableHeaderCell scope="col">Qty</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center' width={100}>Action</CTableHeaderCell>
                             </CTableRow>
-                        ))}
+                        </CTableHead>
+                        <CTableBody>
+                            {plyWoodProductionList.map((item, index) => (
+                                <CTableRow key={index}>
+                                    <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                                    <CTableHeaderCell scope="row" style={{ color: "blue", fontWeight: "800" }}>#PIN{item.pin}</CTableHeaderCell>
+                                    <CTableDataCell>{item.date}</CTableDataCell>
+                                    <CTableDataCell>{item.size}mm</CTableDataCell>
+                                    <CTableDataCell>{item.type}</CTableDataCell>
+                                    <CTableDataCell>{item.qty}</CTableDataCell>
+                                    <CTableDataCell className='d-flex justify-content-around'>
+                                        <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                                            onClick={() => navigate(`/production/edit?pin=${item.pin}&date=${moment(new Date(item.date)).format('YYYY-MM-DDTHH:mm')}&size=${item.size}&type=${item.type}&qty=${item.qty}`)}>
+                                            edit
+                                        </span>
+                                        <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                                            onClick={
+                                                () => {
+                                                    setDeleteItem(item)
+                                                    setDeleteVisible(true)
+                                                }}
+                                        >
+                                            delete
+                                        </span>
+                                    </CTableDataCell>
+                                </CTableRow>
+                            ))}
 
 
 
-                    </CTableBody>
-                </CTable>
-            </CRow>
+                        </CTableBody>
+                    </CTable>
+                </CRow>
+            }
             <CRow>
                 <CCol md={1}></CCol>
                 <CCol className="d-flex justify-content-end" >
@@ -414,9 +468,10 @@ const Production = () => {
                     setDeleteVisible(val)
                 }
                 }
+                page={PAGES.Production}
                 recordId={`#PIN${deleteItem?.pin}`} />
             <ExportModel visible={visible} onClose={(val) => setVisible(val)} />
-
+            <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
         </>
     )
 }

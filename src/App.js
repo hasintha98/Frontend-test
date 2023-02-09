@@ -1,6 +1,9 @@
-import React, { Component, Suspense } from 'react'
+import React, { Component, Suspense, useEffect, useState } from 'react'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 import './scss/style.scss'
+import AuthService from './services/AuthService'
+import EventBus from "./common/EventBus";
+
 
 const loading = (
   <div className="pt-3 text-center">
@@ -12,19 +15,41 @@ const loading = (
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
 const AddNewRecordLayout = React.lazy(() => import('./layout/AddNewRecordLayout'))
 
-class App extends Component {
-  render() {
-    return (
-      <HashRouter>
-        <Suspense fallback={loading}>
-          <Routes>
-            <Route path="*" name="Home" element={<DefaultLayout />} />
-            <Route path="/add-record" name="Record Creation" element={<AddNewRecordLayout />} />
-          </Routes>
-        </Suspense>
-      </HashRouter>
-    )
-  }
+function App() {
+
+  const [userLogin, setUserLogin] = useState(true)
+
+  useEffect(() => {
+    const user = AuthService.getCurrentUser();
+
+    if(user) {
+      setUserLogin(true);
+    } else {
+      logOut()
+    }
+
+  }, [])
+
+  const logOut = () => {
+    //console.log(" logging out from App js !!");
+    AuthService.logout();
+    setUserLogin(false);
+
+  };
+  
+
+  return (
+    <HashRouter>
+      <Suspense fallback={loading}>
+        <Routes>
+          {/* <Route exact path="/add-record" name="Record Creation" element={<AddNewRecordLayout />} /> */}
+          <Route path="*" name="Home" element={userLogin ? <DefaultLayout /> : <AddNewRecordLayout />} />
+
+        </Routes>
+      </Suspense>
+    </HashRouter>
+  )
+
 }
 
 export default App

@@ -12,12 +12,24 @@ const _nav = [
     </span>,
   },
   {
-    component: CNavItem,
+    component: CNavGroup,
     name: 'Production',
-    to: '/production',
+    to: '/productio',
     icon: <span className="material-symbols-outlined nav-icon">
       factory
     </span>,
+     items: [
+      {
+        component: CNavItem,
+        name: 'Production List',
+        to: '/production',
+      },
+      {
+        component: CNavItem,
+        name: 'Summery',
+        to: '/production/summery',
+      }
+    ]
   },
   {
     component: CNavGroup,
@@ -34,7 +46,7 @@ const _nav = [
       },
       {
         component: CNavItem,
-        name: 'Row Materials',
+        name: 'Raw Materials',
         to: '/inventory/raw',
       },
       {
@@ -84,14 +96,14 @@ const _nav = [
  
     ],
   },
-  {
-    component: CNavItem,
-    name: 'Purchase Orders',
-    to: '/',
-    icon: <span className="material-symbols-outlined nav-icon">
-      inventory
-    </span>,
-  },
+  // {
+  //   component: CNavItem,
+  //   name: 'Purchase Orders',
+  //   to: '/',
+  //   icon: <span className="material-symbols-outlined nav-icon">
+  //     inventory
+  //   </span>,
+  // },
   {
     component: CNavItem,
     name: 'Customers',
@@ -116,12 +128,20 @@ const _nav = [
     groups
     </span>,
   },
+  // {
+  //   component: CNavItem,
+  //   name: 'Reports',
+  //   to: '/',
+  //   icon: <span className="material-symbols-outlined nav-icon">
+  //   chart_data
+  //   </span>,
+  // },
   {
     component: CNavItem,
-    name: 'Reports',
-    to: '/',
+    name: 'Activity Logs',
+    to: '/logs',
     icon: <span className="material-symbols-outlined nav-icon">
-    chart_data
+    edit_note
     </span>,
   }
 

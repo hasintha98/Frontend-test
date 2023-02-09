@@ -1,4 +1,4 @@
-const productionsPageAccess = {
+export let productionsPageAccess = {
   new: ["moderator", "admin", "superadmin"],
 
   edit: ["moderator", "admin", "superadmin"],
@@ -10,20 +10,7 @@ const productionsPageAccess = {
 
 
 
-const plyWoodPageAccess = {
-  new: ["moderator", "admin", "superadmin"],
-
-  update: ["moderator", "admin", "superadmin"],
-
-  edit: ["moderator", "admin", "superadmin"],
-
-  delete: ["admin", "superadmin"],
-
-  multipleDelete: ["admin", "superadmin"],
-};
-
-
-const rawMatPageAccess = {
+let plyWoodPageAccess = {
   new: ["moderator", "admin", "superadmin"],
 
   update: ["moderator", "admin", "superadmin"],
@@ -36,7 +23,20 @@ const rawMatPageAccess = {
 };
 
 
-const salesPageAccess = {
+let rawMatPageAccess = {
+  new: ["moderator", "admin", "superadmin"],
+
+  update: ["moderator", "admin", "superadmin"],
+
+  edit: ["moderator", "admin", "superadmin"],
+
+  delete: ["admin", "superadmin"],
+
+  multipleDelete: ["admin", "superadmin"],
+};
+
+
+let salesPageAccess = {
   view: ["moderator", "admin", "superadmin"],
 
   new: ["moderator", "admin", "superadmin"],
@@ -52,7 +52,7 @@ const salesPageAccess = {
 
 
 
-const customerPageAccess = {
+let customerPageAccess = {
   newSale: ["moderator", "admin", "superadmin"],
 
   new: ["moderator", "admin", "superadmin"],

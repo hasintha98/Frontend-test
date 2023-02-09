@@ -3,9 +3,13 @@ import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
+import LoadingModel from 'src/components/Models/LoadingModel';
 import SalesOrderServices from 'src/services/SalesOrderServices';
+import swal from 'sweetalert';
 const ViewSalesOrder = () => {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false)
+    const [loadingMsg, setLoadingMsg] = useState(null)
     const search = useLocation().search
     const orderId = new URLSearchParams(search).get('sop')
     const id = new URLSearchParams(search).get('id')
@@ -20,17 +24,23 @@ const ViewSalesOrder = () => {
     });
 
     useEffect(() => {
-      SalesOrderServices.getSalesList("dash_page", 0,10,"", null, null , 0)
-      .then(response => {
-        const item = response.data.salesList.find(obj => obj.id === Number(id));
-        setTotalAmount(parseFloat(item.order_sub_chargers) - parseFloat(item.order_delivery_chargers))
-        setSalesOrder(item)
-        console.log(item)
-      })
-    
-    
+        setLoading(false)
+        SalesOrderServices.getSalesList("dash_page", 0, 10, "", null, null, 0)
+            .then(response => {
+                const item = response.data.salesList.find(obj => obj.id === Number(id));
+                setTotalAmount(parseFloat(item.order_sub_chargers) + parseFloat(item.order_delivery_chargers) - parseFloat(item?.order_total_refund))
+                setSalesOrder(item)
+                console.log(item)
+                setLoading(false)
+            })
+            .catch(error => {
+                setLoading(false)
+                swal("Error!", error.response.message, "error")
+                console.log(error.response.message)
+            })
+
     }, [])
-    
+
     function numberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
@@ -39,7 +49,7 @@ const ViewSalesOrder = () => {
             <CRow style={{ overflow: 'hidden' }}>
                 <CCol>
 
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# {orderId}</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# SO{salesOrder?.sop}</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
 
@@ -87,7 +97,7 @@ const ViewSalesOrder = () => {
 
                             color='secondary'
                             style={{ width: "100%", backgroundColor: '#D9D9D9' }}
-                            onClick={() => navigate('/memos/new?id=6546')}
+                            onClick={() => navigate(`/memos/new?id=${id}`)}
                         >Credit Memo</CButton>
                     </CButtonGroup>
 
@@ -107,7 +117,7 @@ const ViewSalesOrder = () => {
 
                             color='secondary'
                             style={{ width: "100%", backgroundColor: '#D9D9D9' }}
-                            onClick={() => navigate('/shipments/new?id=6546')}
+                            onClick={() => navigate(`/shipments/new?id=${id}`)}
                         >Ship</CButton>
                     </CButtonGroup>
                     <CButtonGroup className="me-2" role="group" aria-label="Second group">
@@ -139,7 +149,7 @@ const ViewSalesOrder = () => {
                             <CRow>
                                 <CCol>
                                     <p style={{ fontSize: "2.5em", fontWeight: "bold", textTransform: 'uppercase', padding: 0, margin: 0 }}>SALES ORDER</p>
-                                    <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# {orderId}</p>
+                                    <p style={{ fontWeight: "bold", padding: 0, margin: 0, textAlign: 'end' }}>Order# SO{salesOrder?.sop}</p>
                                 </CCol>
 
 
@@ -175,24 +185,24 @@ const ViewSalesOrder = () => {
                                 </CTableRow>
                             </CTableHead>
                             <CTableBody>
-                            {salesOrder?.Orders_Items_TBs.map((item,index) => (
-                                 <CTableRow key={index}>
-                                 <CTableDataCell className='text-center'>{item.type} - {item.size}mm</CTableDataCell>
-                                 <CTableDataCell className='text-center'>{item.item_status == 0 ? "Pending" : item.item_status == 1 ? "Delivered" : "Canceled" }</CTableDataCell>
-                                 <CTableDataCell className='text-center'>
-                                     {item.qty_ordered ? <p>Ordered <br />{item.qty_ordered}</p> : null }
-                                     {item.qty_invoiced ? <p>Invoiced <br />{item.qty_invoiced}</p> : null }
-                                     {item.qty_shipped ? <p>Shipped <br />{item.qty_shipped}</p> : null }
-                                     {item.qty_returned ? <p>Returned <br />{item.qty_returned}</p> : null }
-                                 </CTableDataCell>
-                                 <CTableDataCell className='text-center'>{numberWithCommas(Number(item.rates).toFixed(2))}</CTableDataCell>
-                                 <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
-                                 <CTableDataCell className='text-center'>{item.taxes} %</CTableDataCell>
-                                 <CTableDataCell className='text-center'>{numberWithCommas(Number(item.total).toFixed(2))}</CTableDataCell>
+                                {salesOrder?.Orders_Items_TBs.map((item, index) => (
+                                    <CTableRow key={index}>
+                                        <CTableDataCell className='text-center'>{item.type} - {item.size}mm</CTableDataCell>
+                                        <CTableDataCell className='text-center'>{item.item_status == 0 ? "Partial" : "Shipped"}</CTableDataCell>
+                                        <CTableDataCell className='text-center'>
+                                            {item.qty_ordered ? <p>Ordered <br />{item.qty_ordered}</p> : null}
+                                            {item.qty_invoiced ? <p>Invoiced <br />{item.qty_invoiced}</p> : null}
+                                            {item.qty_shipped ? <p>Shipped <br />{item.qty_shipped}</p> : null}
+                                            {item.qty_returned ? <p>Returned <br />{item.qty_returned}</p> : null}
+                                        </CTableDataCell>
+                                        <CTableDataCell className='text-center'>{numberWithCommas(Number(item.rates).toFixed(2))}</CTableDataCell>
+                                        <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
+                                        <CTableDataCell className='text-center'>{item.taxes} %</CTableDataCell>
+                                        <CTableDataCell className='text-center'>{numberWithCommas(Number(item.total).toFixed(2))}</CTableDataCell>
 
-                             </CTableRow>
-                            ))}
-                               
+                                    </CTableRow>
+                                ))}
+
                             </CTableBody>
                         </CTable>
 
@@ -228,7 +238,7 @@ const ViewSalesOrder = () => {
                                 <CCol>
                                     <span className='ms-5'>{numberWithCommas(Number(salesOrder?.order_total_refund).toFixed(2))}</span>
                                 </CCol>
-                            </CRow> : null }
+                            </CRow> : null}
                             <CRow className='mt-4'>
                                 <CCol >
                                     <span style={{ fontWeight: 'bold' }}>Total (LKR)</span>
@@ -242,6 +252,7 @@ const ViewSalesOrder = () => {
                     </CRow>
                 </CRow>
             </div>
+            <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
         </>
     )
 }

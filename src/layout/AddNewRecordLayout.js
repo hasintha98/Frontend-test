@@ -10,8 +10,8 @@ const AddNewRecordLayout = () => {
         <>
             <NavBar />
             <AddProductionRecord />
-            <LastRecordFooter lastRecord={"9mm LO/EVR : 25"} />
-            
+            <LastRecordFooter />
+
         </>
     )
 }

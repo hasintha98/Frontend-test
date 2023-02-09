@@ -11,7 +11,9 @@ import {
 } from '@coreui/react'
 import { useNavigate } from 'react-router-dom';
 
-import addIcon  from 'src/assets/images/add.PNG'
+import addIcon from 'src/assets/images/add.PNG'
+import { AppHeaderDropdown } from './header';
+import AuthService from 'src/services/AuthService';
 const AppHeader = () => {
   const navigate = useNavigate();
   return (
@@ -21,7 +23,7 @@ const AppHeader = () => {
           className="ps-1"
           onClick={() => navigate('/add-record')}
         >
-           <img src={addIcon} height={"40px"} />
+          <img src={addIcon} height={"40px"} />
         </CHeaderToggler>
         <CHeaderBrand className="mx-auto d-md-none" to="/">
           {/* <CIcon icon={logo} height={48} alt="Logo" /> */}
@@ -35,29 +37,27 @@ const AppHeader = () => {
               Admin
             </CNavLink>
           </CNavItem>
-          <CNavItem>
-            <CNavLink >
-              <span className="material-symbols-sharp" onClick={() => navigate('/permissions')} style={{cursor: 'pointer'}}>
-                settings
-              </span>
-            </CNavLink>
-          </CNavItem>
+          {AuthService.getCurrentUser().roles.includes("ROLE_ADMIN", "ROLE_SUPERADMIN")  && (
+              <CNavItem>
+                <CNavLink >
+                  <span className="material-symbols-sharp" onClick={() => navigate('/permissions')} style={{ cursor: 'pointer' }}>
+                    settings
+                  </span>
+                </CNavLink>
+              </CNavItem>
+            )}
+
           <CNavItem>
             <CNavLink href="#">
-              <span className="material-symbols-sharp" style={{cursor: 'pointer'}}>
+              <span className="material-symbols-sharp" style={{ cursor: 'pointer' }}>
                 info
               </span>
             </CNavLink>
           </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">
-              <span className="material-symbols-sharp" style={{cursor: 'pointer'}}>
-                account_circle
-              </span>
-            </CNavLink>
-          </CNavItem>
+          <AppHeaderDropdown />
         </CHeaderNav>
-     
+
+
       </CContainer>
 
 

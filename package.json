@@ -2,7 +2,7 @@
   "name": "Frontend-test",
   "version": "4.4.0",
   "description": "Frontend-test",
-  "homepage": ".",
+  "homepage": "https://riviruply.test.escarta.lk",
   "bugs": {
     "url": "https://github.com/coreui/coreui-free-react-admin-template/issues"
   },
@@ -57,6 +57,7 @@
     "react-select": "^5.7.0",
     "react-to-print": "^2.14.11",
     "react-tooltip": "^5.6.0",
+    "recharts": "^2.1.10",
     "redux": "4.2.0",
     "rsuite": "^5.24.1",
     "simplebar-react": "^2.4.1",

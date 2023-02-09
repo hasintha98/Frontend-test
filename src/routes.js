@@ -2,6 +2,7 @@ import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Production = React.lazy(() => import('./views/dashboard/Production'))
+const ProductionSummery = React.lazy(() => import('./views/dashboard/ProductionSummery'))
 const AddProduction = React.lazy(() => import('./views/dashboard/AddProduction'))
 const EditProduction = React.lazy(() => import('./views/dashboard/EditProduction'))
 const Inventory = React.lazy(() => import('./views/dashboard/Inventory'))
@@ -21,7 +22,7 @@ const ViewShipment = React.lazy(() => import('./views/dashboard/ViewShipment'))
 const CreditMemos = React.lazy(() => import('./views/dashboard/CreditMemos'))
 const NewMemo = React.lazy(() => import('./views/dashboard/NewMemo'))
 const ViewMemo = React.lazy(() => import('./views/dashboard/ViewMemo'))
-const ActivityLogs = React.lazy(() => import('./views/dashboard/ActivityLogs'))
+const SalesActivityLogs = React.lazy(() => import('./views/dashboard/ActivityLogs'))
 const Customers = React.lazy(() => import('./views/dashboard/Customers'))
 const Vendors = React.lazy(() => import('./views/dashboard/Vendors'))
 const Users = React.lazy(() => import('./views/dashboard/Users'))
@@ -31,12 +32,13 @@ const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/production', name: 'Production', element: Production },
+  { path: '/production/summery', name: 'Production-summery', element: ProductionSummery },
   { path: '/production/add', name: 'Production-Add', element: AddProduction },
   { path: '/production/edit', name: 'Production-edit', element: EditProduction },
   { path: '/inventory/raw', name: 'Inventory-raw', element: Inventory },
   { path: '/inventory/plywood', name: 'Inventory-ply', element: PlyWood },
   { path: '/inventory/other', name: 'Inventory-ply', element: Other },
-  { path: '/inventory/add-plywood', name: 'Inventory-Plywoord', element: AddPlywoodType },
+  { path: '/inventory/add-plywood', name: 'Inventory-Plywood', element: AddPlywoodType },
   { path: '/raw', name: 'Raw-Records', element: RawRecords },
   { path: '/sales', name: 'Sales-Order', element: SalesOrder },
   { path: '/sales/new', name: 'Sales-Order-new', element: NewSalesOrder },
@@ -50,11 +52,11 @@ const routes = [
   { path: '/memos', name: 'Memos', element: CreditMemos },
   { path: '/memos/new', name: 'Memos-new', element: NewMemo },
   { path: '/memos/view', name: 'Memos-view', element: ViewMemo },
-  { path: '/logs', name: 'Activity-logs', element: ActivityLogs },
+  { path: '/logs', name: 'Activity-logs', element: SalesActivityLogs },
   { path: '/customers', name: 'Customers', element: Customers },
   { path: '/vendors', name: 'Vendors', element: Vendors },
   { path: '/users', name: 'Users', element: Users },
-  { path: '/permissions', name: 'Permissions', element: Permissions }
+  { path: '/permissions', name: 'Permissions', element: Permissions },
 ]
 
 export default routes

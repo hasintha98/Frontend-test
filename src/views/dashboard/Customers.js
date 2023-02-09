@@ -3,12 +3,21 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import AddEditCustomerModel from 'src/components/Models/AddEditCustomerModel';
 import ExportModel from 'src/components/Models/ExportModel';
+import LoadingModel from 'src/components/Models/LoadingModel';
 import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel';
+import NoData from 'src/extra/NoData/NoData';
+import { ACTIONS, PAGES } from 'src/hooks/constants';
+import ActivityLogsService from 'src/services/ActivityLogsService';
+import AuthService from 'src/services/AuthService';
 import CustomersServices from 'src/services/CustomersServices';
 import swal from 'sweetalert';
 
 const Customers = () => {
+
+    const [loading, setLoading] = useState(false)
+    const [loadingMsg, setLoadingMsg] = useState(null)
+
     const [deleteVisible, setDeleteVisible] = useState(false)
     const [visiblePinModel, setVisiblePinModel] = useState(true)
     const [addCustomerVisible, setAddCustomerVisible] = useState(false)
@@ -40,11 +49,14 @@ const Customers = () => {
 
     CustomersRef.current = CustomerList;
 
+    console.log(CustomerList)
     useEffect(() => {
         retrieveCustomerList()
     }, [page, pageSize, updateOnRefReshPage, refreshPage])
 
     const retrieveCustomerList = () => {
+        setLoading(true)
+        setLoadingMsg("Fetching Customers...")
         setCheckingApi(true);
 
         const params = getRequestParams(searchTitle_Telephone, page, pageSize);
@@ -77,30 +89,16 @@ const Customers = () => {
                 if (customersList.length) {
                     var revCustomersList = customersList;//.reverse();
 
-                    for (let i = 0; i < revCustomersList.length; i++) {
-                        var crr_customer = revCustomersList[i];
+                    customersList.sort(function(a, b){return a.id - b.id});
 
-                        if (crr_customer.id === 1) {
-                            cash_customer = crr_customer;
-                        } else {
-                            customersEdited.push(crr_customer);
-                        }
-                    }
-
-                    customersFinal.push(cash_customer);
-
-                    for (let i = 0; i < customersEdited.length; i++) {
-                        var crr_customerX = customersEdited[i];
-
-                        customersFinal.push(crr_customerX);
-                    }
-
-                    setCustomerList(customersFinal);
+                    setCustomerList(customersList);
                     console.log(customersFinal)
                     setCount(totalPages);
                     setCustomersState(true);
                 }
                 setCheckingApi(false);
+                setLoading(false)
+                setLoadingMsg(null)
             },
             (error) => {
                 const resMessage =
@@ -113,6 +111,9 @@ const Customers = () => {
                 //console.log("login in error ", resMessage);
                 setCustomersState(false);
                 setCheckingApi(false);
+                setLoading(false)
+                setLoadingMsg(null)
+                swal("Error!", error.response.data.message, "error");
             }
         );
     };
@@ -169,18 +170,41 @@ const Customers = () => {
     };
 
     const deleteCustomer = () => {
-        CustomersServices.deleteCustomerRecord("user_page", [Number(deleteItem.id)])
+        CustomersServices.deleteCustomerRecord("dash_page", [Number(deleteItem.id)])
             .then(response => {
+                ActivityLogsService.createLog(PAGES.CUSTOMER, AuthService.getCurrentUser().name, ACTIONS.DELETE, 1)
+                .catch((error) => {
+                    console.log(error)
+                    swal("Error!", "Something Went Wrong With Logging", "error");
+                })
                 swal("Success!", "Customer Deleted Successfully", "success");
                 setRefreshPage(!refreshPage)
             }).catch(error => {
                 console.log(error.response.data.message)
                 swal("Error!", error.response.data.message, "error");
+                ActivityLogsService.createLog(PAGES.CUSTOMER, AuthService.getCurrentUser().name, ACTIONS.DELETE, 0)
+                .catch((error) => {
+                    console.log(error)
+                    swal("Error!", "Something Went Wrong With Logging", "error");
+                })
             })
     }
 
 
-    return visiblePinModel ? <PinRequiredModel visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} /> : (
+    let titlesObject = {
+        h1: " No Customers Found. ",
+        h2: " All time ",
+        h3: " Add a new customer by simply clicking the button on top right side",
+    };
+
+    var noDataContent = (
+        <>
+            <NoData Titles={titlesObject} />
+        </>
+    );
+
+
+    return visiblePinModel ? <PinRequiredModel isNavigate={true} page={PAGES.CUSTOMER} visible={visiblePinModel} onClose={(val) => setVisiblePinModel(val)} isNavigation={true} /> : (
         <>
             <CRow>
                 <CCol md={8}>
@@ -210,10 +234,9 @@ const Customers = () => {
 
                 <CCol md={3}>
                     <CFormSelect className='default-border' aria-label="Default select example">
-                        <option>Bulk Action</option>
-                        <option value="1">One</option>
-                        <option value="2">Two</option>
-                        <option value="3" disabled>Three</option>
+                        <option>None</option>
+                        <option value="delete">Delete Selected</option>
+                        <option value="export">Export Selected</option>
                     </CFormSelect>
                 </CCol>
                 <CCol md={1}>
@@ -271,51 +294,52 @@ const Customers = () => {
                 </CCol>
             </CRow>
             {/* Table */}
-
-            <CRow className='p-2 mt-4'>
-                <CTable striped>
-                    <CTableHead>
-                        <CTableRow color="info">
-                            <CTableHeaderCell scope="col" className='text-center'>Customer #</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Customer Name</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Phone</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Email</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Complete
-                                Orders</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Pending Orders</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className='text-center'>Action</CTableHeaderCell>
-                        </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                        {CustomerList.map((item, index) => (
-                            <CTableRow key={index}>
-                                <CTableDataCell className='text-center'>{item.id}</CTableDataCell>
-                                <CTableDataCell className='text-center'>{item.name}</CTableDataCell>
-                                <CTableDataCell className='text-center'>{item.phone}</CTableDataCell>
-                                <CTableDataCell className='text-center'>{item.email}</CTableDataCell>
-
-                                <CTableDataCell className='text-center'>{item.done_orders}</CTableDataCell>
-                                <CTableDataCell className='text-center'>{item.pending_orders}</CTableDataCell>
-                                <CTableDataCell className='d-flex justify-content-around'>
-                                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
-                                        onClick={() => handleEditButton(true, item)}>
-                                        edit
-                                    </span>
-                                    <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
-                                        onClick={() => {
-                                            setDeleteItem(item)
-                                            setDeleteVisible(true)
-                                        }}
-                                    >
-                                        delete
-                                    </span>
-                                </CTableDataCell>
+            {!isCustomers ? noDataContent :
+                <CRow className='p-2 mt-4'>
+                    <CTable striped>
+                        <CTableHead>
+                            <CTableRow color="info">
+                                <CTableHeaderCell scope="col" className='text-center'>Customer #</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Customer Name</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Phone</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Email</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Complete
+                                    Orders</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Pending Orders</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center' width={200}>Action</CTableHeaderCell>
                             </CTableRow>
-                        ))}
+                        </CTableHead>
+                        <CTableBody>
+                            {CustomerList.map((item, index) => (
+                                <CTableRow key={index}>
+                                    <CTableDataCell className='text-center'>{item.id}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.name}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.phone}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.email}</CTableDataCell>
 
-                    </CTableBody>
-                </CTable>
-            </CRow>
+                                    <CTableDataCell className='text-center'>{item.done_orders}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.pending_orders}</CTableDataCell>
+                                    <CTableDataCell className='d-flex justify-content-around'>
+                                        <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                                            onClick={() => handleEditButton(true, item)}>
+                                            edit
+                                        </span>
+                                        <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
+                                            onClick={() => {
+                                                setDeleteItem(item)
+                                                setDeleteVisible(true)
+                                            }}
+                                        >
+                                            delete
+                                        </span>
+                                    </CTableDataCell>
+                                </CTableRow>
+                            ))}
+
+                        </CTableBody>
+                    </CTable>
+                </CRow>
+            }
             <CRow>
                 <CCol md={1}></CCol>
                 <CCol className="d-flex justify-content-end" >
@@ -377,7 +401,11 @@ const Customers = () => {
                     setDeleteVisible(val)
                 }
                 }
-                recordId={`#${deleteItem?.id}`} />
+                recordId={`#${deleteItem?.id}`} 
+                page={PAGES.CUSTOMER}
+                />
+          
+            <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
         </>
     )
 }
