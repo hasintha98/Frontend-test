@@ -33,9 +33,9 @@ const NewInvoice = () => {
                 setSalesOrder(item)
                 setItemList(item.Orders_Items_TBs)
                 SalesOrderServices.getMaxMinStockAvailability("dash_page", item.Orders_Items_TBs)
-                .then(response => {
-                    setItemStocks(response.data)
-                })
+                    .then(response => {
+                        setItemStocks(response.data)
+                    })
 
             })
             .catch(error => {
@@ -43,26 +43,26 @@ const NewInvoice = () => {
                 console.log(error.response.message)
             })
 
-       
+
 
 
     }, [])
 
     const handleQTY = (qty, id, itemDetails, orderQTY, invoicedQTY, stock) => {
         setValidationAlert(false)
-        if(qty > orderQTY) {
+        if (qty > orderQTY) {
             setValidationAlert(true)
             setValidationMsg(`Qty must be less than ${orderQTY}`)
             return
         }
 
-        if(qty < invoicedQTY) {
-            setValidationAlert(true)
-            setValidationMsg(`Qty must be higher than ${invoicedQTY}`)
-            return
-        }
+        // if (qty < invoicedQTY) {
+        //     setValidationAlert(true)
+        //     setValidationMsg(`Qty must be higher than ${invoicedQTY}`)
+        //     return
+        // }
 
-        if(qty > stock) {
+        if (qty > stock) {
             setValidationAlert(true)
             setValidationMsg(`Qty must be higher than stock (${stock})`)
             return
@@ -77,7 +77,7 @@ const NewInvoice = () => {
             subTotal = parseFloat(subTotal) + parseFloat(item.total)
             item.new_rates = 0
             item.order_item_id = id
-            item.qty_to_invoice = qty
+            item.qty_to_invoice = Number(qty)
             item.item_details = itemDetails
             return item
         })
@@ -99,11 +99,11 @@ const NewInvoice = () => {
 
     const createInvoice = () => {
 
-        if(!invoiceDate) {
+        if (!invoiceDate) {
             return
         }
 
-        if(validationAlert) {
+        if (validationAlert) {
             return
         }
 
@@ -212,10 +212,10 @@ const NewInvoice = () => {
                                         {item.qty_returned ? <p>Returned <br />{item.qty_returned}</p> : null}
                                     </CTableDataCell>
                                     <CTableDataCell className='text-center'>
-                                        <CFormInput type="number" max={item.qty_ordered} onChange={(e) => handleQTY(e.target.value, item.id, `${item.type} - ${item.size}mm`, item.qty_ordered, item.qty_invoiced, getItemStock(item.type, item.size))} />
+                                        <CFormInput type="number" step="1" max={item.qty_ordered} onChange={(e) => handleQTY(e.target.value, item.id, `${item.type} - ${item.size}mm`, item.qty_ordered, item.qty_invoiced, getItemStock(item.type, item.size))} />
                                         <CAlert width={200} color="warning" dismissible visible={validationAlert} onClose={() => setValidationAlert(false)} className="d-flex align-items-center mt-2">
                                             <CIcon icon={cilWarning} className="flex-shrink-0 me-2" width={10} height={10} />
-                                            <div style={{fontSize: '0.7em'}}>{validationMsg}</div>
+                                            <div style={{ fontSize: '0.7em' }}>{validationMsg}</div>
                                         </CAlert>
                                     </CTableDataCell>
                                     <CTableDataCell className='text-center'>{numberWithCommas(Number(item?.sub_rates ? item?.sub_rates : 0).toFixed(2))}</CTableDataCell>
@@ -236,7 +236,8 @@ const NewInvoice = () => {
                         <CButton color="secondary" variant="outline">Update Qty&apos;s {' '}
                             <span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
                                 sync
-                            </span></CButton>
+                            </span>
+                        </CButton>
                         <p className='mt-5'>Notes:</p>
                         <CFormTextarea
                             id="exampleFormControlTextarea1"

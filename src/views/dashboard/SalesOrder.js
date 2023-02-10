@@ -27,7 +27,7 @@ const SalesOrder = () => {
 
     const [startDate, setStartDate] = useState(new Date().setMonth(new Date().getMonth() - 4))
     const [endDate, setEndDate] = useState(new Date())
-
+    const [selectedOrderStatus, setSelectedOrderStatus] = useState(-1)
     const [salesOrderList, setSalesOrderList] = useState([]);
 
     const salesOrderListRef = useRef();
@@ -49,7 +49,7 @@ const SalesOrder = () => {
     useEffect(() => {
         retrievePlyWoodProductionList()
         getCustomerDetails()
-    }, [page, pageSize, updateOnRefReshPage])
+    }, [page, pageSize, updateOnRefReshPage, selectedOrderStatus])
 
 
     const onChangeSearchTitle_Type = (e) => {
@@ -129,8 +129,6 @@ const SalesOrder = () => {
         return customer.name
     }
 
-
-
     const retrievePlyWoodProductionList = async () => {
         setLoading(true)
         setLoadingMsg("Fetching Sales Orders...")
@@ -156,7 +154,7 @@ const SalesOrder = () => {
             title_type_req,
             startTime,
             endTime,
-            bulkOrdersOptionData
+            Number(selectedOrderStatus)
         ).then(
             (response) => {
                 //////console.log("Productions  list-> ", response);
@@ -284,11 +282,11 @@ const SalesOrder = () => {
                     <CButton className='blue-button' style={{ width: "100%" }} color="primary" variant="outline" onClick={() => retrievePlyWoodProductionList()}>Filter</CButton>
                 </CCol>
                 <CCol md={2}>
-                    <CFormSelect className='default-border' aria-label="Default select example">
-                        <option>Order Status</option>
-                        <option value="1">INVOICED</option>
-                        <option value="2">COMPLETED</option>
-                        <option value="3" disabled>PENDING</option>
+                    <CFormSelect onChange={(e) => setSelectedOrderStatus(e.target.value)} className='default-border' aria-label="Default select example">
+                        <option value={-1}>Order Status</option>
+                        <option value={0}>PENDING</option>
+                        <option value={1}>INVOICED</option>
+                        <option value={2}>CANCELED</option>
                     </CFormSelect>
                 </CCol>
                 <CCol md={1}>
@@ -352,7 +350,7 @@ const SalesOrder = () => {
                                     <CTableHeaderCell scope="row" className='text-center' style={{ color: "blue", fontWeight: "800" }}>#SO{item.sop}</CTableHeaderCell>
                                     <CTableDataCell className='text-center'>{moment(item.order_date).format("YYYY-MM-DD")} </CTableDataCell>
                                     <CTableDataCell className='text-center'>{getCustomerName(item?.customerId)}</CTableDataCell>
-                                    <CTableDataCell className='text-center'>{item.order_status == 0 ? "PENDING" : item.order_status == 1 ? "DELIVERED" : "CANCELED"}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{item.order_status == 0 ? "PENDING" : item.order_status == 1 ? "INVOICED" : "CANCELED"}</CTableDataCell>
                                     <CTableDataCell className='text-center'>LKR {numberWithCommas(Number(item.order_sub_chargers).toFixed(2))}</CTableDataCell>
                                     <CTableDataCell className='d-flex justify-content-around'>
                                         <span className="material-symbols-outlined" style={{ cursor: "pointer" }}

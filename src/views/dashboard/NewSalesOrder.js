@@ -1,4 +1,6 @@
-import { CButton, CCol, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import { cilWarning } from '@coreui/icons';
+import CIcon from '@coreui/icons-react';
+import { CAlert, CButton, CCol, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import LoadingModel from 'src/components/Models/LoadingModel';
@@ -19,10 +21,12 @@ const NewSalesOrder = () => {
     const [loadingMsg, setLoadingMsg] = useState(null)
     const [pinVisibleModel, setPinVisibleModel] = useState(false)
     const [customerName, setCustomerName] = useState("")
-    const [deliveryDate, setDeliveryDate] = useState(new Date())
-    const [orderDate, setOrderDate] = useState(new Date())
+    const [deliveryDate, setDeliveryDate] = useState(new Date().toLocaleDateString('en-CA'))
+    const [orderDate, setOrderDate] = useState(new Date().toLocaleDateString('en-CA'))
     const [deliveryMethod, setDeliveryMethod] = useState("")
     const [note, setNote] = useState("")
+    const [validationAlert, setValidationAlert] = useState(false)
+    const [validationMsg, setValidationMsg] = useState("")
 
     const [itemDetails, setItemDetails] = useState("")
     const [qty, setQty] = useState(0)
@@ -30,7 +34,7 @@ const NewSalesOrder = () => {
     const [discount, setDiscount] = useState(0)
     const [tax, setTax] = useState(0)
     const [amount, setAmount] = useState("")
-    const [deliveryCharge, setDeliveryCharge] = useState(1000)
+    const [deliveryCharge, setDeliveryCharge] = useState(0)
     const [customerList, setCustomerList] = useState([])
 
     const [orderExtraCharge, setOrderExtraCharge] = useState(0)
@@ -85,9 +89,10 @@ const NewSalesOrder = () => {
         await PlyWoodTypesServices.getPlyWoodTypesListAll("dash_page", "dash_page")
             .then(response => {
                 const filteredArray = response.data.plyWoodsInfoAll.map(item => {
-                    return { id: item.id, label: `${item.type} - ${item.size}mm`, type: item.type, size: item.size }
+                    return { id: item.id, label: `${item.type} - ${item.size}mm`, type: item.type, size: item.size, stock: item.stock }
                 })
                 setPlywoodList(filteredArray)
+
                 setLoading(false)
                 setLoadingMsg(null)
             })
@@ -107,15 +112,36 @@ const NewSalesOrder = () => {
 
 
     const handleTableItemSubmit = () => {
+        console.log("itemDetails", itemDetails)
+        setValidationAlert(false)
+        setValidationMsg(``)
         if (!itemDetails) {
+            setValidationAlert(true)
+            setValidationMsg(`Please enter required items`)
             return
         }
 
         if (qty <= 0) {
+            setValidationAlert(true)
+            setValidationMsg(`Qty must be more than 0`)
+            return
+        }
+
+        if (Number(itemDetails.stock) < qty) {
+            setValidationAlert(true)
+            setValidationMsg(`Qty must be less than stock (${itemDetails.stock})`)
             return
         }
 
         if (rate <= 0) {
+            setValidationAlert(true)
+            setValidationMsg(`Please enter a rate`)
+            return
+        }
+
+        if (Number(itemDetails.stock) <= 0) {
+            setValidationAlert(true)
+            setValidationMsg(`Selected item no stock available`)
             return
         }
 
@@ -123,28 +149,34 @@ const NewSalesOrder = () => {
 
         setItems([...items, {
             type: itemDetails.type,
-            qty: parseFloat(qty),
+            qty: Number(qty),
+            stock: Number(itemDetails.stock),
             size: parseFloat(itemDetails.size),
             rates: parseFloat(rate),
             discounts: parseFloat(discount),
             taxes: parseFloat(tax),
             total: parseFloat(total)
         }])
-        setPlywoodList(oldValues => {
-            return oldValues.filter(item => item.id !== Number(itemDetails.id))
-        })
+        // setPlywoodList(oldValues => {
+        //     return oldValues.filter(item => item.id !== Number(itemDetails.id))
+        // })
         clearFields()
     }
 
     console.log(items)
 
     const handleOrderSubmit = async () => {
+        setValidationAlert(false)
+        setValidationMsg(``)
         if (customerName == "") {
+            setValidationAlert(true)
+            setValidationMsg(`Please select a customer`)
             return
         }
 
         if (deliveryMethod == "") {
-
+            setValidationAlert(true)
+            setValidationMsg(`Please enter delivery method`)
         }
 
         setLoading(true)
@@ -156,10 +188,10 @@ const NewSalesOrder = () => {
                 setLoadingMsg(null)
                 //swal("Success!", error.response.data.message, "error");
                 ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 1)
-                .catch((error) => {
-                    console.log(error)
-                    swal("Error!", "Something Went Wrong With Logging", "error");
-                })
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
                 swal("Success!", "Sales Order Created Successfully", "success").then((value) => {
                     navigate('/sales')
                 });
@@ -169,10 +201,10 @@ const NewSalesOrder = () => {
                 setLoadingMsg(null)
                 swal("Error!", error.response.data.message, "error");
                 ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 0)
-                .catch((error) => {
-                    console.log(error)
-                    swal("Error!", "Something Went Wrong With Logging", "error");
-                })
+                    .catch((error) => {
+                        console.log(error)
+                        swal("Error!", "Something Went Wrong With Logging", "error");
+                    })
             })
 
     }
@@ -197,7 +229,7 @@ const NewSalesOrder = () => {
     items.forEach(item => {
         subTotal = parseFloat(subTotal) + parseFloat(item.total)
     })
-    const total = (subTotal - parseFloat(deliveryCharge)) < 0 ? 0 : subTotal - parseFloat(deliveryCharge)
+    const total = (subTotal + parseFloat(deliveryCharge))
 
     function numberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -246,7 +278,7 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="delivery-date" className="col-sm-3 col-form-label">Delivery Date</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput type="date" id="delivery-date" aria-label="Default select example" onChange={(e) => setDeliveryDate(e.target.value)} />
+                            <CFormInput type="date" id="delivery-date" defaultValue={new Date().toLocaleDateString('en-CA')} aria-label="Default select example" onChange={(e) => setDeliveryDate(e.target.value)} />
                         </CCol>
                     </CRow>
                 </CCol>
@@ -256,7 +288,7 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="date" className="col-sm-3 col-form-label">Sales Order Date *</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput type="date" id="date" aria-label="Default select example" onChange={(e) => setOrderDate(e.target.value)} />
+                            <CFormInput type="date" defaultValue={new Date().toLocaleDateString('en-CA')} id="date" aria-label="Default select example" onChange={(e) => setOrderDate(e.target.value)} />
                         </CCol>
                     </CRow>
                 </CCol>
@@ -290,7 +322,7 @@ const NewSalesOrder = () => {
 
                         {items?.map((item, key) => (
                             <CTableRow key={key}>
-                                <CTableDataCell className='text-center'>{item.type} - {item.size}mm</CTableDataCell>
+                                <CTableDataCell className='text-center'>{item.type} - {item.size}mm ({item.stock})</CTableDataCell>
                                 <CTableDataCell className='text-center'>{item.qty}</CTableDataCell>
                                 <CTableDataCell className='text-center'>{item.rates}</CTableDataCell>
                                 <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
@@ -307,13 +339,13 @@ const NewSalesOrder = () => {
                                 <CFormSelect onChange={(e) => handlePlyWoodType(e.target.value)} aria-label="Default select example">
                                     <option>Type or click to select an item</option>
                                     {plywoodList.map((item, index) => (
-                                        <option key={index} value={item.id}>{item.label}</option>
+                                        <option key={index} value={item.id}>{item.label} ({item.stock})</option>
                                     ))}
                                 </CFormSelect>
                                 {/* <CFormInput style={{ textAlign: 'center' }} type='text' className='no-border-input' value={itemDetails} onChange={(e) => setItemDetails(e.target.value)} placeholder="Type or click to select an item" required /> */}
                             </CTableDataCell>
                             <CTableDataCell className='text-center'>
-                                <CFormInput style={{ textAlign: 'center' }} type='number' step="0.01" className='no-border-input' value={qty} onChange={(e) => setQty(e.target.value)} required />
+                                <CFormInput style={{ textAlign: 'center' }} type='number' min="0" step="1" className='no-border-input' value={qty} onChange={(e) => setQty(e.target.value)} required />
                             </CTableDataCell>
                             <CTableDataCell className='text-center'>
                                 <CFormInput style={{ textAlign: 'center' }} type='number' step="0.01" className='no-border-input' value={rate} onChange={(e) => setRate(e.target.value)} required />
@@ -335,11 +367,15 @@ const NewSalesOrder = () => {
 
                     </CTableBody>
                 </CTable>
-
+                <CAlert width={200} color="warning" dismissible visible={validationAlert} onClose={() => setValidationAlert(false)} className="d-flex align-items-center mt-2">
+                    <CIcon icon={cilWarning} className="flex-shrink-0 me-2" width={10} height={10} />
+                    <div style={{ fontSize: '0.9em' }}>{validationMsg}</div>
+                </CAlert>
                 <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => handleTableItemSubmit()}>Add another line<span className="material-symbols-outlined" style={{ fontSize: "1em" }}>
                     add
                 </span>
                 </span>
+                
                 <CRow>
                     <CCol md={6}>
                         <CRow className='mt-5'>
@@ -368,8 +404,10 @@ const NewSalesOrder = () => {
                             <CCol>
                                 <span className='ms-5'>Delivery Chargers</span>
                             </CCol>
-                            <CCol>
-                                <span className='ms-5'>{numberWithCommas(Number(deliveryCharge).toFixed(2))}</span>
+                            <CCol style={{ display: 'flex', justifyContent: 'end' }}>
+                                <span className='ms-5'>
+                                    <CFormInput style={{ width: "120px" }} type="number" id="delCharge" aria-label="Default select example" defaultValue={0} onChange={(e) => setDeliveryCharge(e.target.value)} />
+                                </span>
                             </CCol>
                         </CRow>
                         <CRow className='mt-4'>
@@ -383,7 +421,7 @@ const NewSalesOrder = () => {
 
                     </CCol>
                 </CRow>
-
+             
             </CRow>
             <hr style={{ backgroundColor: '#000', height: "2px" }} />
             <CRow>
@@ -411,10 +449,10 @@ const NewSalesOrder = () => {
             <PinRequiredModel
                 visible={pinVisibleModel}
                 pinStatus={(status) => status ? handleOrderSubmit() : setPinVisibleModel(false)}
-                onClose={(val) => setPinVisibleModel(val)} 
+                onClose={(val) => setPinVisibleModel(val)}
                 page={PAGES.SALES_ORDER}
                 action={"create"}
-                />
+            />
             <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
         </>
     )

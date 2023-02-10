@@ -1,6 +1,7 @@
 import { cilWarning } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CAlert, CButton, CCol, CFormInput, CFormLabel, CModal, CModalBody, CRow } from '@coreui/react'
+import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { ACTIONS, PAGES } from 'src/hooks/constants'
 import ActivityLogsService from 'src/services/ActivityLogsService'
@@ -28,7 +29,7 @@ const AddProductionRecord = (props) => {
     const [isHovered, setIsHovered] = useState(false)
     const [successRecordId, setSuccessRecordId] = useState(null)
 
-    const [date, setDate] = useState("")
+    const [date, setDate] = useState(moment(new Date()).format("YYYY-MM-DDThh:mm"))
     const [size, setSize] = useState(null)
     const [qty, setQty] = useState(null)
 
@@ -103,7 +104,9 @@ const AddProductionRecord = (props) => {
     }
 
     const authenticatePin = async () => {
-        let auth = false
+        setLoading(true)
+        setLoadingMsg("")
+        let auth = true
         const roles = AuthService.getCurrentUser() ? AuthService.getCurrentUser().roles.map(role => {
             return role.replace("ROLE_", "").toLowerCase()
         }) : []
@@ -113,33 +116,18 @@ const AddProductionRecord = (props) => {
             roles.push("user")
         }
         const newRoles = []
-        await PermissionsService.getPermissionList("dash_page")
-            .then(response => {
-                const { PageAccessList } = response.data
-                const accessItem = PageAccessList.find(o => o.page_name === PAGES.Production)
-                access = accessItem
-                if (roles.includes("admin") && accessItem.create_admin == 1) {
-                    auth = true
-                    newRoles.push("admin")
-                }
-                if (roles.includes("moderator") && accessItem.create_mod == 1) {
-                    auth = true
-                    newRoles.push("moderator")
-                }
-                if (roles.includes("user")) {
-                    auth = true
-                    newRoles.push("user")
-                }
-            })
+     
         if (auth) {
-            await PermissionsService.actionPinCodeAuth(newRoles, pin)
+            await PermissionsService.actionPinCodeAuth(["user", "admin", "moderator", "superadmin"], pin)
                 .then(response => {
                     submitProductionDetails();
                     setPin("")
                     setVisible(false)
+                    setLoading(false)
                 }).catch(error => {
                     setPin("")
                     swal("Error!", error.response.data.message, "error");
+                    setLoading(false)
 
                 })
         } else {
@@ -149,13 +137,16 @@ const AddProductionRecord = (props) => {
                         submitProductionDetails();
                         setPin("")
                         setVisible(false)
+                        setLoading(false)
                     }).catch(error => {
                         setPin("")
                         swal("Error!", "Unauthorized. Please Enter Admin Pin Code", "error");
+                        setLoading(false)
                     })
             }
             setPin("")
             swal("Error!", "Unauthorized", "error");
+            setLoading(false)
         }
 
     }

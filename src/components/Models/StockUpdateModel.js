@@ -1,6 +1,7 @@
 import { cilWarning } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CAlert, CButton, CCol, CFormInput, CFormLabel, CFormSelect, CModal, CModalBody, CRow } from '@coreui/react'
+import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { ACTIONS, PAGES } from 'src/hooks/constants'
 import ActivityLogsService from 'src/services/ActivityLogsService'
@@ -12,7 +13,7 @@ import PinRequiredModel from './PinRequiredModel'
 
 const StockUpdateModel = ({ visible, onClose, product, isAdding, refreshPage, type }) => {
 
-    const [date, setDate] = useState(null)
+    const [date, setDate] = useState(moment(new Date()).format("YYYY-MM-DDThh:mm"))
     const [qty, setQty] = useState(null)
 
     const [pinVisibleModel, setPinVisibleModel] = useState(false)
@@ -96,6 +97,7 @@ const StockUpdateModel = ({ visible, onClose, product, isAdding, refreshPage, ty
                     <CCol sm={10}>
                         <CFormInput
                             type="datetime-local"
+                            defaultValue={moment(new Date()).format("YYYY-MM-DDThh:mm")}
                             onChange={(e) => setDate(e.target.value)}
                             id="date" />
                     </CCol>

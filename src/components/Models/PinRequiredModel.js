@@ -5,9 +5,10 @@ import { PAGES } from 'src/hooks/constants'
 import AuthService from 'src/services/AuthService'
 import PermissionsService from 'src/services/PermissionsService'
 import UserService from 'src/services/UserService'
+import LoadingModel from './LoadingModel'
 
 const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigate = false, page, action }) => {
-
+    const [loading, setLoading] = useState(false)
     const [pin, setPin] = useState("")
     const [icon, setIcon] = useState(
         <span
@@ -22,12 +23,13 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
 
     const navigate = useNavigate()
     const authenticatePin = async () => {
-
+        setLoading(true)
         if (isNavigate) {
             PermissionsService.pagePinCodeAuth(AuthService.getCurrentUser().name, page, pin)
                 .then(response => {
                     onClose(false)
                     pinStatus(true)
+                    setLoading(false)
                 }).catch(error => {
                     setIcon(
                         <span
@@ -39,7 +41,7 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
                     setPrimaryMessage("Pin Invalid!")
                     setErrorMessage(error.response.data.message)
                     setSecondaryMessage('To retry please enter pin code and press Enter key')
-
+                    setLoading(false)
                 })
 
         } else {
@@ -76,6 +78,7 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
                         setPin("")
                         onClose(false)
                         pinStatus(true)
+                        setLoading(false)
                     }).catch(error => {
                         setPin("")
                         setIcon(
@@ -88,6 +91,7 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
                         setPrimaryMessage("Pin Invalid!")
                         setErrorMessage(error.response.data.message)
                         setSecondaryMessage('To retry please enter admin or moderator pin code and press Enter key')
+                        setLoading(false)
                     })
             } else {
                 if(access[action + "_admin"] == 1 || access[action+"_mod"] == 1) {
@@ -107,6 +111,7 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
                         setPin("")
                         onClose(false)
                         pinStatus(true)
+                        setLoading(false)
                     }).catch(error => {
                         setPin("")
                         setIcon(
@@ -119,6 +124,7 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
                         setPrimaryMessage("Pin Invalid!")
                         setErrorMessage(error.response.data.message)
                         setSecondaryMessage(`To retry please enter ${validateStrings} pin code and press Enter key`)
+                        setLoading(false)
                     })
                 }
               
@@ -199,6 +205,7 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
                     </CButton>
                 </div>
             </CModalBody>
+            <LoadingModel visible={loading} loadingMsg={null} onClose={(val) => setLoading(false)} />
         </CModal>
     )
 }

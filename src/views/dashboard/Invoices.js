@@ -15,11 +15,12 @@ import swal from 'sweetalert'
 import NoData from 'src/extra/NoData/NoData'
 import { PAGES } from 'src/hooks/constants'
 import PinRequiredModel from 'src/components/Models/PinRequiredModel'
+import CustomersServices from 'src/services/CustomersServices'
 
 const Invoices = () => {
     const [visible, setVisible] = useState(false)
     const [deleteVisible, setDeleteVisible] = useState(false)
-
+    const [customers, setCustomers] = useState([])
     const [loading, setLoading] = useState(false)
     const [loadingMsg, setLoadingMsg] = useState(null)
     const [invoiceList, setInvoiceList] = useState([]);
@@ -42,8 +43,20 @@ const Invoices = () => {
     const [updateOnRefReshPage, setUpdateOnRefreshPage] = useState(0);
 
     useEffect(() => {
+        getCustomerDetails()
         retrieveInvoiceList()
     }, [page, pageSize, updateOnRefReshPage])
+
+    const getCustomerDetails = () => {
+        CustomersServices.getAllCustomersInfo("dash_page", 0, 10, "")
+            .then(response => {
+
+                // const customer = response.data.customersList.find(obj => obj.id === Number(item.Orders_Data_TB.customerId));
+                setCustomers(response.data.customersList)
+
+            })
+    }
+
 
     const onChangeSearchTitle_Type = (e) => {
         const searchTitle = e.target.value;
@@ -61,6 +74,13 @@ const Invoices = () => {
 
         ////console.log("Search input changing type -> ", searchTitle);
     };
+
+    const getCustomerName = (id) => {
+
+        const customer = customers.find(obj => obj.id === Number(id));
+        return customer?.name
+    }
+
 
     const findByTitle = () => {
         setPage(1);
@@ -125,6 +145,7 @@ const Invoices = () => {
                     setInvoiceList(revsalesList);
 
                     setIsInvoiceListState(true);
+                    
                 }
 
                 setCount(totalPages);
@@ -287,7 +308,7 @@ const Invoices = () => {
                                     <CTableDataCell className='text-center'>{moment(item.invoiced_date).format("YYYY-MM-DD")}</CTableDataCell>
                                     <CTableDataCell className='text-center'>#SO{item.Orders_Data_TB.sop}</CTableDataCell>
                                     <CTableDataCell className='text-center'>{moment(item.Orders_Data_TB.order_date).format("YYYY-MM-DD")}</CTableDataCell>
-                                    <CTableDataCell className='text-center'>{item.Orders_Data_TB.customerId}</CTableDataCell>
+                                    <CTableDataCell className='text-center'>{getCustomerName(item.Orders_Data_TB.customerId)}</CTableDataCell>
                                     <CTableDataCell className='text-center'>{item.invoice_status == 0 ? "Payment Pending" : "Paid"}</CTableDataCell>
                                     <CTableDataCell className='text-center'>LKR {numberWithCommas(Number(item.invoice_grand_total).toFixed(2))}</CTableDataCell>
                                     <CTableDataCell className='d-flex justify-content-around'>

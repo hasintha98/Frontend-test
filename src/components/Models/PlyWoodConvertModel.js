@@ -1,6 +1,7 @@
 import { cilWarning } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { CAlert, CButton, CCol, CFormInput, CFormLabel, CFormSelect, CModal, CModalBody, CRow } from '@coreui/react'
+import moment from 'moment'
 import React, { useState } from 'react'
 import { ACTIONS, PAGES } from 'src/hooks/constants'
 import ActivityLogsService from 'src/services/ActivityLogsService'
@@ -12,10 +13,12 @@ import PinRequiredModel from './PinRequiredModel'
 const PlyWoodConvertModel = ({ visible, onClose, item, refreshPage }) => {
 
     const [convertQty, setConvertQty] = useState(null)
-    const [date, setDate] = useState(null)
+    const [date, setDate] = useState(moment(new Date()).format("YYYY-MM-DDThh:mm"))
     const [pinVisibleModel, setPinVisibleModel] = useState(false)
     const [validationAlert, setValidationAlert] = useState(false)
     const [validationMsg, setValidationMsg] = useState("")
+
+    console.log(date)
 
     const submitConvertInput = () => {
         setValidationAlert(false)
@@ -79,6 +82,7 @@ const PlyWoodConvertModel = ({ visible, onClose, item, refreshPage }) => {
                     <CCol sm={10}>
                         <CFormInput
                             type="datetime-local"
+                            defaultValue={moment(new Date()).format("YYYY-MM-DDThh:mm")}
                             onChange={(e) => setDate(e.target.value)}
                             id="date"
                         />

@@ -33,7 +33,6 @@ const NewShipment = () => {
             .then(response => {
                 const item = response.data.salesList.find(obj => obj.id === Number(orderId));
                 setSalesOrder(item)
-                console.log(item)
                 const array = item.Orders_Items_TBs.map(obj => ({ ...obj, item_details: `${obj.type} - ${obj.size}mm`, qty_shipping: 0, order_item_id: obj.id }))
                 setItemList(array)
                 SalesOrderServices.getMaxMinStockAvailability("dash_page", item.Orders_Items_TBs)
@@ -104,6 +103,8 @@ const NewShipment = () => {
         }
 
         if (!deliveryDate) {
+            setValidationAlert(true)
+            setValidationMsg(`Please provide a delivery date`)
             return
         }
 
@@ -221,7 +222,7 @@ const NewShipment = () => {
                                         {item.qty_returned ? <p>Returned <br />{item.qty_returned}</p> : null}
                                     </CTableDataCell>
                                     <CTableDataCell className='text-center'>
-                                        <CFormInput type="number" onChange={(e) => handleQTY(e.target.value, item.id, item.qty_ordered, item.qty_shipped, getItemStock(item.type, item.size))} />
+                                        <CFormInput type="number" min="0" step="1" onChange={(e) => handleQTY(e.target.value, item.id, item.qty_ordered, item.qty_shipped, getItemStock(item.type, item.size))} />
                                         <CAlert width={200} color="warning" dismissible visible={validationAlert} onClose={() => setValidationAlert(false)} className="d-flex align-items-center mt-2">
                                             <CIcon icon={cilWarning} className="flex-shrink-0 me-2" width={10} height={10} />
                                             <div style={{ fontSize: '0.7em' }}>{validationMsg}</div>

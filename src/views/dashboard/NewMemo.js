@@ -228,7 +228,7 @@ const NewMemo = () => {
                                         <CFormCheck type='checkbox' onChange={(e) => handleReturnedStock(e.target.checked, item.id)} />
                                     </CTableDataCell>
                                     <CTableDataCell className='text-center'>
-                                        <CFormInput type="number" onChange={(e) => handleQTY(e.target.value, item.id, item.qty_shipped)} />
+                                        <CFormInput type="number" min="0" step="1" onChange={(e) => handleQTY(e.target.value, item.id, item.qty_shipped)} />
                                         <CAlert width={200} color="warning" dismissible visible={validationAlert} onClose={() => setValidationAlert(false)} className="d-flex align-items-center mt-2">
                                             <CIcon icon={cilWarning} className="flex-shrink-0 me-2" width={10} height={10} />
                                             <div style={{fontSize: '0.7em'}}>{validationMsg}</div>
@@ -275,7 +275,8 @@ const NewMemo = () => {
                                 <span className='ms-5'>Adjustment Refund</span>
                             </CCol>
                             <CCol style={{ display: 'flex', justifyContent: 'end' }}>
-                                <span className='ms-5' >  <CFormInput style={{ width: "120px" }}
+                                <span className='ms-5' >  
+                                <CFormInput style={{ width: "120px" }}
                                 value={refundAdjustment}
                                     onChange={(e) => {
                                         setRefundAdjustment(e.target.value)

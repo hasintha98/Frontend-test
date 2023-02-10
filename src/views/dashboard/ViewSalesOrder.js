@@ -17,6 +17,7 @@ const ViewSalesOrder = () => {
     console.log(orderId)
 
     const [totalAmount, setTotalAmount] = useState(0)
+    const [orderStatus, setOrderStatus] = useState(0)
 
     const componentRef = useRef();
     const handlePrint = useReactToPrint({
@@ -24,12 +25,19 @@ const ViewSalesOrder = () => {
     });
 
     useEffect(() => {
+        getDetails()
+
+    }, [])
+
+    const getDetails = () => {
         setLoading(false)
-        SalesOrderServices.getSalesList("dash_page", 0, 10, "", null, null, 0)
+        SalesOrderServices.getSalesList("dash_page", 0, 10, "", null, null, -1)
             .then(response => {
+                console.log(response)
                 const item = response.data.salesList.find(obj => obj.id === Number(id));
                 setTotalAmount(parseFloat(item.order_sub_chargers) + parseFloat(item.order_delivery_chargers) - parseFloat(item?.order_total_refund))
                 setSalesOrder(item)
+                setOrderStatus(item.order_status)
                 console.log(item)
                 setLoading(false)
             })
@@ -38,18 +46,33 @@ const ViewSalesOrder = () => {
                 swal("Error!", error.response.message, "error")
                 console.log(error.response.message)
             })
-
-    }, [])
+    }
 
     function numberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
+
+    const changeStatus = (status) => {
+        setLoading(true)
+        setLoadingMsg('')
+        SalesOrderServices.updateSalesOrderStatus("dash_page", Number(salesOrder?.id), status)
+            .then(response => {
+                swal("Success!", "Credit Memo Status Changed Successfully", "success")
+                getDetails()
+                setLoading(false)
+
+            }).catch(error => {
+                swal("Error!", error.response.data.message, "error")
+                setLoading(false)
+            })
+    }
+
     return (
         <>
             <CRow style={{ overflow: 'hidden' }}>
-                <CCol>
+                <CCol md={4}>
 
-                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# SO{salesOrder?.sop}</span>
+                    <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>Order# SO{salesOrder?.sop} ({orderStatus == 0 ? "PENDING" : orderStatus == 1 ? "INVOICED" : "CANCELED"})</span>
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
 
@@ -119,6 +142,16 @@ const ViewSalesOrder = () => {
                             style={{ width: "100%", backgroundColor: '#D9D9D9' }}
                             onClick={() => navigate(`/shipments/new?id=${id}`)}
                         >Ship</CButton>
+                    </CButtonGroup>
+                    <CButtonGroup className="me-2" role="group" aria-label="Second group">
+                        <CDropdown >
+                            <CDropdownToggle color="secondary" style={{ width: "100%", backgroundColor: '#D9D9D9' }}>Mark As</CDropdownToggle>
+                            <CDropdownMenu className='mt-2'>
+                                {orderStatus != 0 ? <CDropdownItem onClick={() => changeStatus(0)}>PENDING</CDropdownItem> : null}
+                                {orderStatus != 1 ? <CDropdownItem onClick={() => changeStatus(1)}>INVOICED</CDropdownItem> : null}
+                                {orderStatus != 2 ? <CDropdownItem onClick={() => changeStatus(2)} >CANCELED</CDropdownItem> : null}
+                            </CDropdownMenu>
+                        </CDropdown>
                     </CButtonGroup>
                     <CButtonGroup className="me-2" role="group" aria-label="Second group">
                         <CDropdown >
