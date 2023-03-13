@@ -1,3 +1,6 @@
+import AuthService from "src/services/AuthService";
+
+const userDetails = AuthService.getCurrentUser()
 
   const checkMod = (user) => {
     var mod = user.roles.includes("ROLE_MODERATOR");
@@ -34,10 +37,15 @@
     }
   };
 
+  const getPinStatus = () => {
+    return userDetails.pin;
+  };
+
 const UserStatus = {
   checkMod,
   checkAdmin,
   checkSuperAdmin,
+  getPinStatus
 };
 
 export default UserStatus;

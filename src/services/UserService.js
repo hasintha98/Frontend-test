@@ -158,6 +158,23 @@ const updatePinCodesInfo = async (page_name, pinProfile) => {
   }
 };
 
+const sendEmail = async (page_name, data) => {
+  //console.log(" delete User  list Calling... by ", page_name);
+
+  if (page_name === "user_page") {
+    const response = await axios.post(
+      AppConfigData.Backend_Url + "/user/sendEmail",
+      data
+    );
+
+    return response;
+  } else {
+    const response = Api.post("/user/sendEmail", data);
+
+    return response;
+  }
+};
+
 //!======================
 
 const UserService = {

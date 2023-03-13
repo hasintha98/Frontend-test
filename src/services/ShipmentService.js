@@ -10,6 +10,7 @@ const createNewShipment = async (
     shipment_to_address,
     shipment_remarks,
     shipment_chargers,
+    ref_no,
     itemsIn,
 ) => {
     //console.log(" create new Sales Order calling.. by ", page_name);
@@ -22,6 +23,7 @@ const createNewShipment = async (
         shipment_to_address: shipment_to_address,
         shipment_remarks: shipment_remarks,
         shipment_chargers: shipment_chargers,
+        ref_no: ref_no,
         itemsIn: itemsIn,
     };
 

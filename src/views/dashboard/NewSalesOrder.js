@@ -1,8 +1,9 @@
 import { cilWarning } from '@coreui/icons';
 import CIcon from '@coreui/icons-react';
 import { CAlert, CButton, CCol, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import moment from 'moment';
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingModel from 'src/components/Models/LoadingModel';
 import PinRequiredModel from 'src/components/Models/PinRequiredModel';
 import { ACTIONS, PAGES } from 'src/hooks/constants';
@@ -16,18 +17,19 @@ import SalesOrder from './SalesOrder';
 
 const NewSalesOrder = () => {
     const navigate = useNavigate();
-
+    const search = useLocation().search
     const [loading, setLoading] = useState(false)
     const [loadingMsg, setLoadingMsg] = useState(null)
     const [pinVisibleModel, setPinVisibleModel] = useState(false)
     const [customerName, setCustomerName] = useState("")
     const [deliveryDate, setDeliveryDate] = useState(new Date().toLocaleDateString('en-CA'))
     const [orderDate, setOrderDate] = useState(new Date().toLocaleDateString('en-CA'))
+    console.log(orderDate)
     const [deliveryMethod, setDeliveryMethod] = useState("")
     const [note, setNote] = useState("")
     const [validationAlert, setValidationAlert] = useState(false)
     const [validationMsg, setValidationMsg] = useState("")
-
+    const [id, setId] = useState(new URLSearchParams(search).get('id'))
     const [itemDetails, setItemDetails] = useState("")
     const [qty, setQty] = useState(0)
     const [rate, setRate] = useState(0)
@@ -36,6 +38,8 @@ const NewSalesOrder = () => {
     const [amount, setAmount] = useState("")
     const [deliveryCharge, setDeliveryCharge] = useState(0)
     const [customerList, setCustomerList] = useState([])
+
+    const [ref_no, setRef_no] = useState("")
 
     const [orderExtraCharge, setOrderExtraCharge] = useState(0)
 
@@ -121,17 +125,18 @@ const NewSalesOrder = () => {
             return
         }
 
+
         if (qty <= 0) {
             setValidationAlert(true)
             setValidationMsg(`Qty must be more than 0`)
             return
         }
 
-        if (Number(itemDetails.stock) < qty) {
-            setValidationAlert(true)
-            setValidationMsg(`Qty must be less than stock (${itemDetails.stock})`)
-            return
-        }
+        // if (Number(itemDetails.stock) < qty) {
+        //     setValidationAlert(true)
+        //     setValidationMsg(`Qty must be less than stock (${itemDetails.stock})`)
+        //     return
+        // }
 
         if (rate <= 0) {
             setValidationAlert(true)
@@ -139,11 +144,11 @@ const NewSalesOrder = () => {
             return
         }
 
-        if (Number(itemDetails.stock) <= 0) {
-            setValidationAlert(true)
-            setValidationMsg(`Selected item no stock available`)
-            return
-        }
+        // if (Number(itemDetails.stock) <= 0) {
+        //     setValidationAlert(true)
+        //     setValidationMsg(`Selected item no stock available`)
+        //     return
+        // }
 
         const total = (parseFloat(qty) * parseFloat(rate)) - (parseFloat(qty) * parseFloat(rate) * parseFloat(discount)) / 100 + (parseFloat(qty) * parseFloat(rate) * parseFloat(tax)) / 100
 
@@ -174,38 +179,72 @@ const NewSalesOrder = () => {
             return
         }
 
+        if (ref_no == "") {
+            setValidationAlert(true)
+            setValidationMsg(`Please enter required reference no`)
+            return
+        }
+
         if (deliveryMethod == "") {
             setValidationAlert(true)
             setValidationMsg(`Please enter delivery method`)
         }
 
         setLoading(true)
-        setLoadingMsg("Creating Sales Order...")
 
-        await SalesOrderServices.createNewSalesOrder("dash_page", orderDate, deliveryDate, deliveryMethod, subTotal, deliveryCharge, orderExtraCharge, note, customerName, items)
-            .then(response => {
-                setLoading(false)
-                setLoadingMsg(null)
-                //swal("Success!", error.response.data.message, "error");
-                ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 1)
-                    .catch((error) => {
-                        console.log(error)
-                        swal("Error!", "Something Went Wrong With Logging", "error");
-                    })
-                swal("Success!", "Sales Order Created Successfully", "success").then((value) => {
-                    navigate('/sales')
-                });
-            }).catch(error => {
-                console.log(error.response.data.message)
-                setLoading(false)
-                setLoadingMsg(null)
-                swal("Error!", error.response.data.message, "error");
-                ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 0)
-                    .catch((error) => {
-                        console.log(error)
-                        swal("Error!", "Something Went Wrong With Logging", "error");
-                    })
-            })
+        if (id) {
+            setLoadingMsg("Updating Sales Order...")
+            await SalesOrderServices.updateSalesOrder("dash_page", orderDate, deliveryDate, deliveryMethod, subTotal, deliveryCharge, orderExtraCharge, note, Number(id), Number(ref_no), items)
+                .then(response => {
+                    setLoading(false)
+                    setLoadingMsg(null)
+                    //swal("Success!", error.response.data.message, "error");
+                    ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.EDIT, 1)
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
+                    swal("Success!", "Sales Order Updated Successfully", "success").then((value) => {
+                        navigate('/sales')
+                    });
+                }).catch(error => {
+                    console.log(error.response.data.message)
+                    setLoading(false)
+                    setLoadingMsg(null)
+                    swal("Error!", error.response.data.message, "error");
+                    ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.EDIT, 0)
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
+                })
+        } else {
+            setLoadingMsg("Creating Sales Order...")
+            await SalesOrderServices.createNewSalesOrder("dash_page", orderDate, deliveryDate, deliveryMethod, subTotal, deliveryCharge, orderExtraCharge, note, customerName,Number(ref_no), items)
+                .then(response => {
+                    setLoading(false)
+                    setLoadingMsg(null)
+                    //swal("Success!", error.response.data.message, "error");
+                    ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 1)
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
+                    swal("Success!", "Sales Order Created Successfully", "success").then((value) => {
+                        navigate('/sales')
+                    });
+                }).catch(error => {
+                    console.log(error.response.data.message)
+                    setLoading(false)
+                    setLoadingMsg(null)
+                    swal("Error!", error.response.data.message, "error");
+                    ActivityLogsService.createLog(PAGES.SALES_ORDER, AuthService.getCurrentUser().name, ACTIONS.CREATE, 0)
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
+                })
+        }
 
     }
 
@@ -234,10 +273,41 @@ const NewSalesOrder = () => {
     function numberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
+
+    useEffect(() => {
+        setId(new URLSearchParams(search).get('id'))
+        if (id) {
+            getSalesOrder()
+        }
+
+    }, [id])
+
+    const getSalesOrder = async () => {
+        await SalesOrderServices.getSalesList(
+            "dash_page",
+            0,
+            10,
+            "",
+            "",
+            1
+        )
+            .then(response => {
+                const { salesList } = response.data;
+                const salesOrder = salesList.find(o => o.id == id)
+                setCustomerName(salesOrder?.Customers_Data_TB.id)
+                setOrderDate(moment(salesOrder?.order_date).format('YYYY-MM-DD'))
+                setDeliveryDate(moment(salesOrder?.delivery_date).format('YYYY-MM-DD'))
+                setDeliveryMethod(salesOrder?.delivery_method)
+                setItems(salesOrder?.Orders_Items_TBs)
+                setNote(salesOrder?.order_remarks)
+                setDeliveryCharge(salesOrder?.order_delivery_chargers)
+            })
+    }
+
     return (
         <>
             <CRow>
-                <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>New Order</span>
+                <span style={{ fontSize: "1.5em", fontWeight: "bold" }}>{id ? "Edit" : "New"} Order</span>
             </CRow>
             <hr style={{ backgroundColor: '#000', height: "2px" }} />
             <CRow className="mt-4">
@@ -245,7 +315,7 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="Qty" className="col-sm-3 col-form-label">Customer Name *</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormSelect onChange={(e) => setCustomerName(e.target.value)} aria-label="Default select example">
+                            <CFormSelect onChange={(e) => setCustomerName(e.target.value)} value={customerName} aria-label="Default select example">
                                 <option>- Select a customer -</option>
                                 {customerList.map((item, index) => (
                                     <option key={index} value={item.id}>{item.name}</option>
@@ -255,7 +325,7 @@ const NewSalesOrder = () => {
                     </CRow>
                 </CCol>
             </CRow>
-            <CRow className="mt-3">
+            {/* <CRow className="mt-3">
                 <CCol md={6}>
                     <CRow>
                         <CFormLabel htmlFor="Qty" className="col-sm-3 col-form-label">Sales Order# *</CFormLabel>
@@ -264,13 +334,13 @@ const NewSalesOrder = () => {
                         </CCol>
                     </CRow>
                 </CCol>
-            </CRow>
+            </CRow> */}
             <CRow className="mt-3">
                 <CCol md={6}>
                     <CRow>
-                        <CFormLabel htmlFor="Qty" className="col-sm-3 col-form-label">Reference#</CFormLabel>
+                        <CFormLabel htmlFor="Qty" className="col-sm-3 col-form-label">Sales Order Ref#</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput id="Qty" aria-label="Default select example" />
+                            <CFormInput id="Qty" aria-label="Default select example" value={ref_no} onChange={(e) => setRef_no(e.target.value)} />
                         </CCol>
                     </CRow>
                 </CCol>
@@ -278,7 +348,7 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="delivery-date" className="col-sm-3 col-form-label">Delivery Date</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput type="date" id="delivery-date" defaultValue={new Date().toLocaleDateString('en-CA')} aria-label="Default select example" onChange={(e) => setDeliveryDate(e.target.value)} />
+                            <CFormInput type="date" id="delivery-date" value={deliveryDate} aria-label="Default select example" onChange={(e) => setDeliveryDate(e.target.value)} />
                         </CCol>
                     </CRow>
                 </CCol>
@@ -288,7 +358,7 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="date" className="col-sm-3 col-form-label">Sales Order Date *</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput type="date" defaultValue={new Date().toLocaleDateString('en-CA')} id="date" aria-label="Default select example" onChange={(e) => setOrderDate(e.target.value)} />
+                            <CFormInput type="date" defaultValue={new Date().toLocaleDateString('en-CA')} id="date" value={orderDate} aria-label="Default select example" onChange={(e) => setOrderDate(e.target.value)} />
                         </CCol>
                     </CRow>
                 </CCol>
@@ -296,7 +366,7 @@ const NewSalesOrder = () => {
                     <CRow>
                         <CFormLabel htmlFor="Qty" className="col-sm-3 col-form-label">Delivery Method</CFormLabel>
                         <CCol sm={10} style={{ width: "60%" }}>
-                            <CFormInput id="Qty" aria-label="Default select example" onChange={(e) => setDeliveryMethod(e.target.value)} />
+                            <CFormInput id="Qty" aria-label="Default select example" value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value)} />
                         </CCol>
                     </CRow>
                 </CCol>
@@ -322,7 +392,7 @@ const NewSalesOrder = () => {
 
                         {items?.map((item, key) => (
                             <CTableRow key={key}>
-                                <CTableDataCell className='text-center'>{item.type} - {item.size}mm ({item.stock})</CTableDataCell>
+                                <CTableDataCell className='text-center'>{item.type} - {item.size}mm {item.stock ? `(${item.stock})` : ""}</CTableDataCell>
                                 <CTableDataCell className='text-center'>{item.qty}</CTableDataCell>
                                 <CTableDataCell className='text-center'>{item.rates}</CTableDataCell>
                                 <CTableDataCell className='text-center'>{item.discounts} %</CTableDataCell>
@@ -375,7 +445,7 @@ const NewSalesOrder = () => {
                     add
                 </span>
                 </span>
-                
+
                 <CRow>
                     <CCol md={6}>
                         <CRow className='mt-5'>
@@ -384,6 +454,7 @@ const NewSalesOrder = () => {
                                     id="exampleFormControlTextarea1"
                                     label="Notes"
                                     rows={3}
+                                    value={note}
                                     onChange={(e) => setNote(e.target.value)}
                                 ></CFormTextarea>
                             </CForm>
@@ -406,7 +477,7 @@ const NewSalesOrder = () => {
                             </CCol>
                             <CCol style={{ display: 'flex', justifyContent: 'end' }}>
                                 <span className='ms-5'>
-                                    <CFormInput style={{ width: "120px" }} type="number" id="delCharge" aria-label="Default select example" defaultValue={0} onChange={(e) => setDeliveryCharge(e.target.value)} />
+                                    <CFormInput value={deliveryCharge} style={{ width: "120px" }} type="number" id="delCharge" aria-label="Default select example" defaultValue={0} onChange={(e) => setDeliveryCharge(e.target.value)} />
                                 </span>
                             </CCol>
                         </CRow>
@@ -421,7 +492,7 @@ const NewSalesOrder = () => {
 
                     </CCol>
                 </CRow>
-             
+
             </CRow>
             <hr style={{ backgroundColor: '#000', height: "2px" }} />
             <CRow>

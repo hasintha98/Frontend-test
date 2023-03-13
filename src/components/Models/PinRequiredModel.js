@@ -2,6 +2,7 @@ import { CButton, CFormInput, CModal, CModalBody } from '@coreui/react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PAGES } from 'src/hooks/constants'
+import UserStatus from 'src/hooks/UserStatus'
 import AuthService from 'src/services/AuthService'
 import PermissionsService from 'src/services/PermissionsService'
 import UserService from 'src/services/UserService'
@@ -152,8 +153,15 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
     const pinInput = useRef(null);
 
     useEffect(() => {
-        console.log(process.env.PIN_REQUIRED)
-   
+    
+        if(!UserStatus.getPinStatus().navigation && isNavigate) {
+            setPin("")
+            onClose(false)
+        } else if(!UserStatus.getPinStatus().actions && !isNavigate){
+            setPin("")
+            onClose(false)
+        }
+
         if (pinInput.current) {
             pinInput.current.focus();
         }
@@ -165,7 +173,7 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
         }
     };
 
-    return (
+    return  (
         <CModal
             style={{ marginTop: "30%", padding: "5%" }}
             visible={visible}

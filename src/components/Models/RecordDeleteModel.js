@@ -1,5 +1,6 @@
 import { CButton, CFormInput, CModal, CModalBody } from '@coreui/react'
 import React, { useEffect, useRef, useState } from 'react'
+import UserStatus from 'src/hooks/UserStatus'
 import AuthService from 'src/services/AuthService'
 import PermissionsService from 'src/services/PermissionsService'
 import UserService from 'src/services/UserService'
@@ -79,7 +80,10 @@ const RecordDeleteModel = ({ visible, onClose, recordId, page }) => {
     const pinInput = useRef(null);
 
     useEffect(() => {
-        console.log(process.env.PIN_REQUIRED)
+        if(!UserStatus.getPinStatus().actions){
+            setPin("")
+            onClose(false, "NO-PINS")
+        }
       if (pinInput.current) {
         pinInput.current.focus();
       }

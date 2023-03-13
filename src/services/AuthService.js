@@ -25,6 +25,7 @@ const login = async (name, password) => {
 
   //console.log("user ->", response.data);
   if (response.data.accessToken) {
+    response.data['pin'] = { navigation: false, actions: false }
     TokenService.setUser(response.data);
   }
   return response;

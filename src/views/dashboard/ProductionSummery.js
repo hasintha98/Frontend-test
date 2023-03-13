@@ -214,7 +214,7 @@ const ProductionSummery = () => {
     }
 
     const deleteProduction = () => {
-        PlyWoodTypesServices.deletePlyWoodTypesRecord("dash_page", [Number(deleteItem.id)])
+        PlyWoodTypesServices.deletePlyWoodTypesRecord("dash_page", [Number(deleteItem?.id)])
             .then(response => {
                 swal("Success!", "Production Deleted Successfully", "success");
                 ActivityLogsService.createLog(PAGES.Production, AuthService.getCurrentUser().name, ACTIONS.DELETE, 1)

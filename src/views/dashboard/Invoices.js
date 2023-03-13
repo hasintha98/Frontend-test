@@ -1,6 +1,6 @@
 import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CFormCheck, CFormInput, CFormSelect, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { DateRangePicker } from 'rsuite'
 import ExportModel from 'src/components/Models/ExportModel'
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel'
@@ -24,7 +24,8 @@ const Invoices = () => {
     const [loading, setLoading] = useState(false)
     const [loadingMsg, setLoadingMsg] = useState(null)
     const [invoiceList, setInvoiceList] = useState([]);
-
+    const search = useLocation().search
+    const orderId = new URLSearchParams(search).get('sop')
     const invoiceListRef = useRef();
 
     const [page, setPage] = useState(1);
@@ -43,9 +44,13 @@ const Invoices = () => {
     const [updateOnRefReshPage, setUpdateOnRefreshPage] = useState(0);
 
     useEffect(() => {
+        if(orderId) {
+            setSearchTitle_Type(orderId.replace('SO',''))
+        }
         getCustomerDetails()
         retrieveInvoiceList()
-    }, [page, pageSize, updateOnRefReshPage])
+      
+    }, [page, pageSize, updateOnRefReshPage, orderId])
 
     const getCustomerDetails = () => {
         CustomersServices.getAllCustomersInfo("dash_page", 0, 10, "")
@@ -203,7 +208,7 @@ const Invoices = () => {
                     <CCol></CCol>
                     <CCol md={5}>
                         <CInputGroup >
-                            <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search by Order No' onChange={onChangeSearchTitle_Type} />
+                            <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search by Order No' value={searchTitle_Type} onChange={onChangeSearchTitle_Type} />
                             <CInputGroupText className='default-border'><span className="material-symbols-outlined" onClick={findByTitle}>
                                 search
                             </span></CInputGroupText>
@@ -291,6 +296,7 @@ const Invoices = () => {
                             <CTableRow color="info">
                                 <CTableHeaderCell scope="col" className='text-center' width={5}><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Invoice</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Reference #</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Invoice Date</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Order</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Order Date</CTableHeaderCell>
@@ -305,6 +311,7 @@ const Invoices = () => {
                                 <CTableRow key={index}>
                                     <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
                                     <CTableHeaderCell scope="row" className='text-center' style={{ color: "blue", fontWeight: "800" }}>#IN{item.ip}</CTableHeaderCell>
+                                    <CTableHeaderCell scope="row" className='text-center' style={{ fontWeight: "800" }}>#123</CTableHeaderCell>
                                     <CTableDataCell className='text-center'>{moment(item.invoiced_date).format("YYYY-MM-DD")}</CTableDataCell>
                                     <CTableDataCell className='text-center'>#SO{item.Orders_Data_TB.sop}</CTableDataCell>
                                     <CTableDataCell className='text-center'>{moment(item.Orders_Data_TB.order_date).format("YYYY-MM-DD")}</CTableDataCell>

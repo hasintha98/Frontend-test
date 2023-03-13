@@ -1,8 +1,11 @@
 import { CButton, CButtonGroup, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CForm, CFormCheck, CFormInput, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
+import SendEmailModel from 'src/components/Models/SendEmailModel';
 import CreditMemoServices from 'src/services/CreditMemoService';
 import CustomersServices from 'src/services/CustomersServices';
 import swal from 'sweetalert';
@@ -13,7 +16,8 @@ const ViewMemo = () => {
     const sop = new URLSearchParams(search).get('sop')
     console.log(memoId)
 
-
+    const [selectedData, setSelectedData] = useState(null)
+    const [emailVisible, setEmailVisible] = useState(false)
     const [memoStatus, setMemoStatus] = useState(0)
     const [totalAmount, setTotalAmount] = useState(0)
     const [customerDetails, setCustomer] = useState(null)
@@ -62,6 +66,29 @@ const ViewMemo = () => {
         })
     }
 
+    const handleEmailPDF = async () => {
+        // Get the component's HTML element
+        const element = document.getElementById('memo-to-export');
+
+        // Use html2canvas to convert the element to a canvas
+        const canvas = await html2canvas(element);
+
+        // Use jsPDF to create a PDF from the canvas
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+
+        const file = new File([pdf.output('blob')], "document.pdf", { type: 'application/pdf' });
+
+        setSelectedData({
+            subject: "CREDIT MEMO: CM" + creditMemo?.rip,
+            description: "This is to sending the credit memo invoice of CM" + creditMemo?.rip,
+            file: file,
+            fileName: "CM" + creditMemo?.rip
+        })
+        setEmailVisible(true)
+    }
+
+
     return (
         <>
             <CRow style={{ overflow: 'hidden' }}>
@@ -102,7 +129,7 @@ const ViewMemo = () => {
                             </span>
                         </CButton>
                         <CButton style={{ backgroundColor: '#D9D9D9' }} color="secondary">
-                            <span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+                            <span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }} onClick={() => handleEmailPDF()}>
                                 mail
                             </span>
                         </CButton>
@@ -111,7 +138,7 @@ const ViewMemo = () => {
                 </CCol>
             </CRow>
             <hr style={{ backgroundColor: '#000', height: "2px" }} />
-            <div ref={componentRef} style={{ padding: '50px' }}>
+            <div ref={componentRef} id="memo-to-export" style={{ padding: '50px' }}>
                 <CRow className='ms-2 mb-5' style={{ overflow: 'scroll' }}>
                     <CRow className='mt-5 '>
                         <CCol>
@@ -221,6 +248,7 @@ const ViewMemo = () => {
                     </CRow>
                 </CRow>
             </div>
+            <SendEmailModel visible={emailVisible} onClose={(val) => setEmailVisible(val)} recordId={"CM" + creditMemo?.rip} data={selectedData} title="Credit Memo" />
         </>
     )
 }

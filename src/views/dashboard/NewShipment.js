@@ -25,7 +25,7 @@ const NewShipment = () => {
     const [salesOrder, setSalesOrder] = useState(null)
     const [itemStocks, setItemStocks] = useState([])
     const [notes, setNotes] = useState("")
-
+    const [ref_no, setRef_no] = useState("")
     const [deliveryDate, setDeliveryDate] = useState(new Date().toLocaleDateString('en-CA'))
 
     useEffect(() => {
@@ -63,6 +63,16 @@ const NewShipment = () => {
             return
         }
 
+        if (orderQTY <= shippedQTY) {
+
+            if(qty != 0) {
+                setValidationAlert(true)
+                setValidationMsg(`All Items already Shipped`)
+                return
+            }
+          
+        }
+
         if (qty > stock) {
             setValidationAlert(true)
             setValidationMsg(`Qty must be higher than stock (${stock})`)
@@ -75,7 +85,7 @@ const NewShipment = () => {
             }
             return item
         })
-
+        console.log(newList)
         setItemList(newList)
     }
 
@@ -91,6 +101,10 @@ const NewShipment = () => {
     const createShipment = () => {
 
         let shipmentDetails = null
+
+        if(!ref_no) {
+            return
+        }
 
         if (isUpdatedShipAddress) {
             shipmentDetails = shipementAddress
@@ -111,7 +125,7 @@ const NewShipment = () => {
         if (validationAlert) {
             return
         }
-        ShipmentServices.createNewShipment("dash_page", Number(orderId), deliveryDate, shipmentDetails.name, shipmentDetails.phone, shipmentDetails.address, notes, 1, itemList)
+        ShipmentServices.createNewShipment("dash_page", Number(orderId), deliveryDate, shipmentDetails.name, shipmentDetails.phone, shipmentDetails.address, notes, 1, Number(ref_no), itemList)
             .then(response => {
                 swal("Success!", "Shipment Created Successfully", "success").then((value) => {
                     navigate(`/sales/view?id=${orderId}`)
@@ -195,6 +209,16 @@ const NewShipment = () => {
                     </CCol>
                     <CCol md={2}>
                         <CFormInput type="date" defaultValue={new Date().toLocaleDateString('en-CA')} onChange={(e) => setDeliveryDate(e.target.value)} />
+                    </CCol>
+
+
+                </CRow>
+                <CRow className='d-flex justify-content-end mt-2'>
+                    <CCol md={1}>
+                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Reference # </span></span>
+                    </CCol>
+                    <CCol md={2}>
+                        <CFormInput type="number"  onChange={(e) => setRef_no(e.target.value)} />
                     </CCol>
 
 

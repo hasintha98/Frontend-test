@@ -6,6 +6,11 @@ import { useReactToPrint } from 'react-to-print';
 import LoadingModel from 'src/components/Models/LoadingModel';
 import SalesOrderServices from 'src/services/SalesOrderServices';
 import swal from 'sweetalert';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import axios from 'axios';
+import SendEmailModel from 'src/components/Models/SendEmailModel';
+
 const ViewSalesOrder = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false)
@@ -15,10 +20,10 @@ const ViewSalesOrder = () => {
     const id = new URLSearchParams(search).get('id')
     const [salesOrder, setSalesOrder] = useState(null)
     console.log(orderId)
-
+    const [selectedData, setSelectedData] = useState(null)
     const [totalAmount, setTotalAmount] = useState(0)
     const [orderStatus, setOrderStatus] = useState(0)
-
+    const [emailVisible, setEmailVisible] = useState(false)
     const componentRef = useRef();
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
@@ -67,6 +72,29 @@ const ViewSalesOrder = () => {
             })
     }
 
+
+    const handleEmailPDF = async () => {
+        // Get the component's HTML element
+        const element = document.getElementById('component-to-export');
+
+        // Use html2canvas to convert the element to a canvas
+        const canvas = await html2canvas(element);
+
+        // Use jsPDF to create a PDF from the canvas
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+
+        const file = new File([pdf.output('blob')], "document.pdf", { type: 'application/pdf' });
+    
+        setSelectedData({
+            subject: "SALES ORDER: " + orderId,
+            description: "This is to sending the sales order invoice of " + orderId,
+            file: file,
+            fileName: orderId
+        })
+        setEmailVisible(true)
+    }
+
     return (
         <>
             <CRow style={{ overflow: 'hidden' }}>
@@ -108,7 +136,7 @@ const ViewSalesOrder = () => {
                             </span>
                         </CButton>
                         <CButton style={{ backgroundColor: '#D9D9D9' }} color="secondary">
-                            <span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+                            <span className="material-symbols-outlined pt-1" onClick={() => handleEmailPDF()} style={{ fontSize: "1.1em" }}>
                                 mail
                             </span>
                         </CButton>
@@ -157,9 +185,9 @@ const ViewSalesOrder = () => {
                         <CDropdown >
                             <CDropdownToggle color="secondary" style={{ width: "100%", backgroundColor: '#D9D9D9' }}>View</CDropdownToggle>
                             <CDropdownMenu className='mt-2'>
-                                <CDropdownItem onClick={() => navigate('/invoices')}>Invoice</CDropdownItem>
-                                <CDropdownItem onClick={() => navigate('/shipments')}>Shipment</CDropdownItem>
-                                <CDropdownItem onClick={() => navigate('/memos')} >Credit Info</CDropdownItem>
+                                <CDropdownItem onClick={() => navigate(`/invoices?sop=${orderId}`)}>Invoice</CDropdownItem>
+                                <CDropdownItem onClick={() => navigate(`/shipments?sop=${orderId}`)}>Shipment</CDropdownItem>
+                                <CDropdownItem onClick={() => navigate(`/memos?sop=${orderId}`)} >Credit Info</CDropdownItem>
                                 <CDropdownItem onClick={() => navigate(`/logs?id=${orderId}`)} >Activity Logs</CDropdownItem>
                             </CDropdownMenu>
                         </CDropdown>
@@ -168,7 +196,7 @@ const ViewSalesOrder = () => {
                 </CCol>
             </CRow>
             <hr style={{ backgroundColor: '#000', height: "2px" }} />
-            <div ref={componentRef} style={{ padding: '50px' }}>
+            <div ref={componentRef} id="component-to-export" style={{ padding: '50px' }}>
                 <CRow className='ms-2 mb-5' style={{ overflow: 'scroll' }}>
                     <CRow className='mt-5 '>
                         <CCol>
@@ -286,6 +314,7 @@ const ViewSalesOrder = () => {
                 </CRow>
             </div>
             <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
+            <SendEmailModel visible={emailVisible} onClose={(val) => setEmailVisible(val)} recordId={orderId} data={selectedData} title="Sales Order"/>
         </>
     )
 }

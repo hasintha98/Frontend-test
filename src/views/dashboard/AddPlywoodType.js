@@ -63,32 +63,32 @@ const AddPlywoodType = () => {
         setLoadingMsg("Creating Plywood Type...")
         setLoading(true)
         if (id) {
-            await PlyWoodTypesServices.updatePlyWoodTypeRecord("dash_page", id, size, type, stock, minQty, active,profile)
-            .then(response => {
-                setValidationAlert(false)
-                setLoadingMsg(null)
-                setLoading(false)
-                swal("Success!", "Plywood Type Updated Successfully", "success");
-                //clearFields()
-                ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.EDIT, 1)
-                    .catch((error) => {
-                        console.log(error)
-                        swal("Error!", "Something Went Wrong With Logging", "error");
-                    })
-                console.log(response)
+            await PlyWoodTypesServices.updatePlyWoodTypeRecord("dash_page", id, size, type, stock, minQty, active, profile)
+                .then(response => {
+                    setValidationAlert(false)
+                    setLoadingMsg(null)
+                    setLoading(false)
+                    swal("Success!", "Plywood Type Updated Successfully", "success");
+                    //clearFields()
+                    ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.EDIT, 1)
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
+                    console.log(response)
 
-            }).catch(error => {
-                console.log(error.response.data.message)
-                setValidationAlert(false)
-                setLoadingMsg(null)
-                setLoading(false)
-                swal("Error!", error.response.data.message, "error");
-                ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.EDIT, 0)
-                    .catch((error) => {
-                        console.log(error)
-                        swal("Error!", "Something Went Wrong With Logging", "error");
-                    })
-            })
+                }).catch(error => {
+                    console.log(error.response.data.message)
+                    setValidationAlert(false)
+                    setLoadingMsg(null)
+                    setLoading(false)
+                    swal("Error!", error.response.data.message, "error");
+                    ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.EDIT, 0)
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
+                })
         } else {
 
 
@@ -134,11 +134,9 @@ const AddPlywoodType = () => {
         profileCloned.push(pro)
 
         setProfile(profileCloned)
-        setRawStock(null)
+        setRawStock("")
         setRawType("")
     }
-
-    console.log(profile)
 
     useEffect(() => {
         setId(new URLSearchParams(search).get('id'))
@@ -149,35 +147,45 @@ const AddPlywoodType = () => {
     }, [id])
 
     const getPlywoodType = async () => {
-        await PlyWoodTypesServices.getPlyWoodTypesList(
+        await PlyWoodTypesServices.getPlyWoodTypesListAll(
             "dash_page",
-            0,
-            10,
-            "",
-            ""
+            "dash_page"
         )
             .then(response => {
-                const { plyWoodList } = response.data;
-                const plywood = plyWoodList.find(o => o.id == id)
-                console.log(plyWoodList)
-                console.log(plywood)
+                const { plyWoodsInfoAll } = response.data;
+                const plywood = plyWoodsInfoAll.find(o => o.id == id)
                 setPlyWood(plywood)
                 setType(plywood?.type)
                 setSize(plywood?.size)
                 setStock(plywood?.stock)
                 setMinQty(plywood?.limit)
-                const rawMatArray = plyWood.RawMaterials_PlyWood__Inventory_TBs.map(item => {
+                const profileList = JSON.parse(plywood.profile)
+                console.log("profile", profileList)
+                const rawMatArray = profileList.map(item => {
                     return { type: item.type, stock: item.stock }
                 })
 
+                // const rawMatArray = plywood?.RawMaterials_PlyWood__Inventory_TBs.map(item => {
+                //     return { type: item.type, stock: item.Plywood_Type_Profiles_TB.stock }
+                // })
+
                 setProfile(rawMatArray)
+           
+                console.log("plyWoodList", plyWoodsInfoAll)
+                console.log("rawMatArray", plywood)
             })
     }
 
+    console.log(profile)
+
+    const removeProfileRaw = (item) => {
+        setProfile(profile => profile.filter((raw) => (raw.type != item.type)))
+    }
+
     const handleActive = (e) => {
-        if(e) setActive(1)
+        if (e) setActive(1)
         else setActive(0)
-        
+
     }
     return (
         <>
@@ -324,7 +332,10 @@ const AddPlywoodType = () => {
                                             {item.stock}
                                         </CTableDataCell>
                                         <CTableDataCell width={15} >
-                                            <span style={{ color: 'red', cursor: 'pointer' }} className="material-symbols-outlined">
+                                            <span style={{ color: 'red', cursor: 'pointer' }}
+                                                className="material-symbols-outlined"
+                                                onClick={() => removeProfileRaw(item)}
+                                            >
                                                 close
                                             </span></CTableDataCell>
                                     </CTableRow>
@@ -348,10 +359,10 @@ const AddPlywoodType = () => {
                                             onChange={(e) => setRawStock(e.target.value)}
                                             id="qty" />
                                     </CTableDataCell>
-                                    <CTableDataCell width={15} >
+                                    {/* <CTableDataCell width={15} >
                                         <span style={{ color: 'red', cursor: 'pointer' }} className="material-symbols-outlined">
                                             close
-                                        </span></CTableDataCell>
+                                        </span></CTableDataCell> */}
                                 </CTableRow>
 
 
@@ -383,10 +394,10 @@ const AddPlywoodType = () => {
             <PinRequiredModel
                 visible={pinVisibleModel}
                 pinStatus={(status) => status ? submitPlyWoodType() : setPinVisibleModel(false)}
-                onClose={(val) => setPinVisibleModel(val)} 
+                onClose={(val) => setPinVisibleModel(val)}
                 page={PAGES.PLYWOOD}
                 action={id ? "edit" : "create"}
-                />
+            />
             <LoadingModel visible={loading} loadingMsg={loadingMsg} onClose={(val) => setLoading(false)} />
         </>
     )

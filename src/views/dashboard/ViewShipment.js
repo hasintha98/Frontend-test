@@ -1,15 +1,19 @@
 import { CButton, CButtonGroup, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CForm, CFormInput, CFormTextarea, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
+import SendEmailModel from 'src/components/Models/SendEmailModel';
 import CustomersServices from 'src/services/CustomersServices';
 import ShipmentServices from 'src/services/ShipmentService';
 const ViewShipment = () => {
     const navigate = useNavigate();
     const search = useLocation().search
     const shipId = new URLSearchParams(search).get('shipId')
-
+    const [emailVisible, setEmailVisible] = useState(false)
+    const [selectedData, setSelectedData] = useState(null)
     const [shipment, setShipment] = useState(null)
     const [customer, setCustomer] = useState(null)
 
@@ -39,6 +43,29 @@ const ViewShipment = () => {
     useEffect(() => {
         getShipmentDetails()
     }, [])
+
+    const handleEmailPDF = async () => {
+        // Get the component's HTML element
+        const element = document.getElementById('ship-to-export');
+
+        // Use html2canvas to convert the element to a canvas
+        const canvas = await html2canvas(element);
+
+        // Use jsPDF to create a PDF from the canvas
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+
+        const file = new File([pdf.output('blob')], "document.pdf", { type: 'application/pdf' });
+
+        setSelectedData({
+            subject: "SHIPMENT INVOICE: SN" + shipment?.sip,
+            description: "This is to sending the shipment invoice of SN" + shipment?.sip,
+            file: file,
+            fileName: "SN" + shipment?.sip
+        })
+        setEmailVisible(true)
+    }
+
     return (
         <>
             <CRow style={{ overflow: 'hidden' }}>
@@ -72,7 +99,7 @@ const ViewShipment = () => {
                             </span>
                         </CButton>
                         <CButton style={{ backgroundColor: '#D9D9D9' }} color="secondary">
-                            <span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }}>
+                            <span className="material-symbols-outlined pt-1" style={{ fontSize: "1.1em" }} onClick={() => handleEmailPDF()}>
                                 mail
                             </span>
                         </CButton>
@@ -80,7 +107,7 @@ const ViewShipment = () => {
                 </CCol>
             </CRow>
             <hr style={{ backgroundColor: '#000', height: "2px" }} />
-            <div ref={componentRef} style={{ padding: '50px' }}>
+            <div ref={componentRef} id="ship-to-export" style={{ padding: '50px' }}>
                 <CRow className='ms-2 mb-5' style={{ overflow: 'scroll' }}>
                     <CRow className='mt-5 '>
                         <CCol>
@@ -156,6 +183,7 @@ const ViewShipment = () => {
                     </CRow>
                 </CRow>
             </div>
+            <SendEmailModel visible={emailVisible} onClose={(val) => setEmailVisible(val)} recordId={"SN" + shipment?.sip} data={selectedData} title="Shipment Note"/>
 
         </>
     )

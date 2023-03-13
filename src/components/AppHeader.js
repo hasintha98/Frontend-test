@@ -14,11 +14,22 @@ import { useNavigate } from 'react-router-dom';
 import addIcon from 'src/assets/images/add.PNG'
 import { AppHeaderDropdown } from './header';
 import AuthService from 'src/services/AuthService';
+import { useDispatch, useSelector } from 'react-redux';
 const AppHeader = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch()
+  const sidebarShow = useSelector((state) => state.sidebarShow)
   return (
     <CHeader position="sticky" className="mb-4 bg-header">
       <CContainer fluid>
+        <CHeaderToggler
+          className="ps-1"
+          onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}
+        >
+          <span className="material-symbols-sharp mt-1" style={{ cursor: 'pointer' }}>
+          {sidebarShow ?  'menu_open' : 'menu'}
+          </span>
+        </CHeaderToggler>
         <CHeaderToggler
           className="ps-1"
           onClick={() => navigate('/add-record')}
@@ -34,18 +45,18 @@ const AppHeader = () => {
         <CHeaderNav>
           <CNavItem>
             <CNavLink to="/dashboard" component={NavLink}>
-              Admin
+              {AuthService.getCurrentUser().name}
             </CNavLink>
           </CNavItem>
-          {AuthService.getCurrentUser().roles.includes("ROLE_ADMIN", "ROLE_SUPERADMIN")  && (
-              <CNavItem>
-                <CNavLink >
-                  <span className="material-symbols-sharp" onClick={() => navigate('/permissions')} style={{ cursor: 'pointer' }}>
-                    settings
-                  </span>
-                </CNavLink>
-              </CNavItem>
-            )}
+          {AuthService.getCurrentUser().roles.includes("ROLE_ADMIN", "ROLE_SUPERADMIN") && (
+            <CNavItem>
+              <CNavLink >
+                <span className="material-symbols-sharp" onClick={() => navigate('/permissions')} style={{ cursor: 'pointer' }}>
+                  settings
+                </span>
+              </CNavLink>
+            </CNavItem>
+          )}
 
           <CNavItem>
             <CNavLink href="#">

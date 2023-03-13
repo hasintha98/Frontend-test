@@ -1,6 +1,6 @@
 import { CButton, CCol, CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CFormCheck, CFormInput, CFormSelect, CInputGroup, CInputGroupText, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react'
 import React, { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { DateRangePicker } from 'rsuite'
 import ExportModel from 'src/components/Models/ExportModel'
 import RecordDeleteModel from 'src/components/Models/RecordDeleteModel'
@@ -30,7 +30,8 @@ const Shipments = () => {
     const [page, setPage] = useState(1);
     const [count, setCount] = useState(0);
     const [pageSize, setPageSize] = useState(10);
-
+    const search = useLocation().search
+    const orderId = new URLSearchParams(search).get('sop')
     const pageSizes = [10, 25, 50];
 
     shipmentListRef.current = shipmentListRef;
@@ -84,8 +85,11 @@ const Shipments = () => {
         return params;
     };
     useEffect(() => {
+        if(orderId) {
+            setSearchTitle_Type(orderId.replace('SO',''))
+        }
         retrieveShipmentList()
-    }, [page, pageSize, updateOnRefReshPage])
+    }, [page, pageSize, updateOnRefReshPage, orderId])
 
 
     const retrieveShipmentList = () => {
@@ -196,7 +200,7 @@ const Shipments = () => {
                     <CCol></CCol>
                     <CCol md={5}>
                         <CInputGroup >
-                            <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search by Order No' onChange={onChangeSearchTitle_Type} />
+                            <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search by Order No' value={searchTitle_Type} onChange={onChangeSearchTitle_Type} />
                             <CInputGroupText className='default-border'><span className="material-symbols-outlined" onClick={findByTitle}>
                                 search
                             </span></CInputGroupText>
@@ -284,6 +288,7 @@ const Shipments = () => {
                             <CTableRow color="info">
                                 <CTableHeaderCell scope="col" className='text-center' width={5}><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Shipment</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Reference #</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Shipment Date</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Order</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Order Date</CTableHeaderCell>
@@ -297,6 +302,7 @@ const Shipments = () => {
                                 <CTableRow key={index}>
                                     <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
                                     <CTableHeaderCell scope="row" className='text-center' style={{ color: "blue", fontWeight: "800" }}>#SH{item?.sip ? item?.sip : item.id}</CTableHeaderCell>
+                                    <CTableHeaderCell scope="row" className='text-center' style={{ fontWeight: "800" }}>#123</CTableHeaderCell>
                                     <CTableDataCell className='text-center'>{moment(item.shipment_date).format("YYYY-MM-DD")}</CTableDataCell>
                                     <CTableDataCell className='text-center'>#SO{item.Orders_Data_TB.sop}</CTableDataCell>
                                     <CTableDataCell className='text-center'>{moment(item.Orders_Data_TB.order_date).format("YYYY-MM-DD")}</CTableDataCell>

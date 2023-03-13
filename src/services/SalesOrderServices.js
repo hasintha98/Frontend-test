@@ -17,6 +17,7 @@ const createNewSalesOrder = async (
   order_extra_chargers,
   order_remarks,
   customer_id,
+  ref_no,
   itemsIn
 ) => {
   //console.log(" create new Sales Order calling.. by ", page_name);
@@ -30,6 +31,7 @@ const createNewSalesOrder = async (
     order_extra_chargers: order_extra_chargers,
     order_remarks: order_remarks,
     customer_id: customer_id,
+    ref_no: ref_no,
     itemsIn: itemsIn,
 
   };
@@ -62,6 +64,7 @@ const updateSalesOrder = async (
   order_extra_chargers,
   order_remarks,
   order_id,
+  ref_no,
   itemsIn
 ) => {
   //console.log(" create new Sales Order calling.. by ", page_name);
@@ -75,6 +78,7 @@ const updateSalesOrder = async (
     order_extra_chargers: order_extra_chargers,
     order_remarks: order_remarks,
     order_id: order_id,
+    ref_no: ref_no,
     itemsIn: itemsIn,
   };
 
@@ -212,7 +216,7 @@ const getSalesById = async (
 
 
 
-const exportSalesOrdersTimePeriod  = async (
+const exportSalesOrdersTimePeriod = async (
   page_name,
 
   startTime,
@@ -221,10 +225,10 @@ const exportSalesOrdersTimePeriod  = async (
   //console.log(" get production records list Calling... by ", page_name);
 
 
-    var date = {
-      start: startTime,
-      end: endTime,
-    };
+  var date = {
+    start: startTime,
+    end: endTime,
+  };
   var data = {
     date: date,
   };

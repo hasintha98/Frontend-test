@@ -12,6 +12,9 @@ import moment from 'moment'
 import swal from 'sweetalert'
 import NoData from 'src/extra/NoData/NoData'
 import { PAGES } from 'src/hooks/constants'
+import 'bootstrap-daterangepicker/daterangepicker.css';
+import 'rsuite/styles/index.less'; // or 'rsuite/dist/rsuite.min.css'
+import "rsuite/dist/rsuite.min.css"
 const ActivityLogs = () => {
   const [loading, setLoading] = useState(false)
   const [loadingMsg, setLoadingMsg] = useState(null)

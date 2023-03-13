@@ -261,7 +261,7 @@ const PlyWood = () => {
     );
 
     const deletePlywood = () => {
-        PlyWoodTypesServices.deletePlyWoodTypesRecord("dash_page", [Number(deleteItem.id)])
+        PlyWoodTypesServices.deletePlyWoodTypesRecord("dash_page", [Number(deleteItem?.id)])
             .then(response => {
                 swal("Success!", "PlyWood Type Deleted Successfully", "success");
                 ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.DELETE, 1)

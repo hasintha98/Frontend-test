@@ -11,6 +11,9 @@ import PermissionsService from 'src/services/PermissionsService'
 import { PAGES } from 'src/hooks/constants'
 import swal from 'sweetalert'
 import LoadingModel from 'src/components/Models/LoadingModel'
+import AuthService from 'src/services/AuthService'
+import UserStatus from 'src/hooks/UserStatus'
+import TokenService from 'src/services/TokenService'
 const Permissions = () => {
     const [generalCollapseVisible, setGeneralCollapseVisible] = useState(false)
     const [rawCollapseVisible, setRawCollapseVisible] = useState(true)
@@ -21,11 +24,19 @@ const Permissions = () => {
     const [loading, setLoading] = useState(false)
     const [loadingMsg, setLoadingMsg] = useState(null)
     const [pageAccessList, setPageAccessList] = useState([])
+    const [navigationPin, setNavigationPin] = useState(UserStatus.getPinStatus().navigation)
+    const [actionsPin, setActionsPin] = useState(UserStatus.getPinStatus().actions)
+    const [userRoles, setUserRoles] = useState([])
 
     console.log(productionsPageAccess?.new)
     useEffect(() => {
         setLoadingMsg("Loading Settings...")
         setLoading(true)
+        const roles = AuthService.getCurrentUser().roles.map(role => {
+            return role.replace("ROLE_", "").toLowerCase()
+        })
+
+        setUserRoles(roles)
 
         PermissionsService.getPermissionList("dash_page")
             .then(response => {
@@ -126,6 +137,27 @@ const Permissions = () => {
         setPageAccessList(updatedPageList)
     }
 
+    const handlePins = (type, status) => {
+        const user = AuthService.getCurrentUser()
+        const updatedUser = {
+            ...user,
+            pin: {
+                navigation: type == 'navigation' ? status : user.pin.navigation,
+                actions: type == 'actions' ? status : user.pin.actions
+            }
+        }
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
+        window.location.reload(false);
+
+        if (type == 'navigation')
+            setNavigationPin(status)
+        else
+            setActionsPin(status)
+
+
+    }
+
 
     return (
         <>
@@ -146,212 +178,97 @@ const Permissions = () => {
                                 arrow_back
                             </span>{' '}Back</CButton>
                     </CCol>
-                    {/* <CCol md={4}>
-                        <CButton
-                            color="success"
-                            className='default-border'
-                            variant="outline"
-                            style={{ fontSize: "1em", fontWeight: '600', width: "100%" }}
-                        // onClick={() => setAddCustomerVisible(true)}
-                        >Save</CButton>
-                    </CCol> */}
+
                 </CCol>
             </CRow>
             <hr style={{ backgroundColor: '#000', height: "2px" }} />
             <div className='p-5'>
-                {/* <CRow >
-                    <CCol md={11}>
-                        <span className='fs-5'>Roles and Capabilities</span>
-                    </CCol>
-                    <CCol>
-                        <span className="material-symbols-outlined" style={{ cursor: 'pointer' }} onClick={() => setGeneralCollapseVisible(!generalCollapseVisible)}>
-                            expand_more
-                        </span>
-                    </CCol>
-                    <hr />
-                </CRow>
-                <CRow className='mt-3'>
-                    <CCollapse visible={generalCollapseVisible} className='p-5' style={{ marginLeft: "20px", marginRight: "50px" }}>
+                {userRoles.includes("superadmin") ? <>
+                    <CRow >
+                        <CCol md={11}>
+                            <span className='fs-5'>Pins</span>
+                        </CCol>
+                        <CCol>
+                            <span className="material-symbols-outlined" style={{ cursor: 'pointer' }} onClick={() => setRawCollapseVisible(!rawCollapseVisible)}>
+                                expand_more
+                            </span>
+                        </CCol>
+                        <hr />
+                    </CRow>
+                    <CRow className='mt-3'>
+                        <CCollapse visible={rawCollapseVisible} style={{ marginLeft: '25%' }}>
+                            <CRow className="mb-3" >
+                                <CFormLabel htmlFor="sPin" className="col-sm-2 col-form-label">User</CFormLabel>
+                                <CCol md={1}>
+                                    <CFormInput id="name" type='text' placeholder='Enter Pin' />
+                                </CCol>
+                                <CCol md={2}>
+                                    <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Pin</CButton>
+                                </CCol>
 
-                        <CTable bordered className='p-5'>
-                            <CTableHead>
-                                <CTableRow >
-                                    <CTableHeaderCell scope="col"></CTableHeaderCell>
-                                    <CTableHeaderCell scope="col">Production</CTableHeaderCell>
-                                    <CTableHeaderCell scope="col">Inventory</CTableHeaderCell>
-                                    <CTableHeaderCell scope="col">Sales</CTableHeaderCell>
-                                </CTableRow>
-                            </CTableHead>
-                            <CTableBody>
-                                <CTableRow>
-                                    <CTableDataCell scope="col">User</CTableDataCell>
-                                    <CTableHeaderCell scope="row"><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
-                                    <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                                    <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                            </CRow>
+                            <CRow className="mb-3" >
+                                <CFormLabel htmlFor="production" className="col-sm-2 col-form-label">Moderator</CFormLabel>
+                                <CCol md={1}> <CFormInput id="name" type='text' placeholder='Enter Pin' />
+                                </CCol>
+                                <CCol md={2}>
+                                    <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Pin</CButton>
+                                </CCol>
 
-                                </CTableRow>
-                                <CTableRow>
-                                    <CTableDataCell scope="col">Moderator</CTableDataCell>
-                                    <CTableHeaderCell scope="row"><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
-                                    <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
-                                    <CTableDataCell><CFormCheck id="flexCheckDefault" /></CTableDataCell>
+                            </CRow>
+                            <CRow className="mb-3" >
+                                <CFormLabel htmlFor="Inventory" className="col-sm-2 col-form-label">Admin</CFormLabel>
+                                <CCol md={1}>
+                                    <CFormInput id="name" type='text' placeholder='Enter Pin' />
+                                </CCol>
+                                <CCol md={2}>
+                                    <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Pin</CButton>
+                                </CCol>
 
-                                </CTableRow>
-                                <CTableRow>
-                                    <CTableDataCell scope="col">Admin</CTableDataCell>
-                                    <CTableHeaderCell scope="row"><CFormCheck id="flexCheckDefault" disabled /></CTableHeaderCell>
-                                    <CTableDataCell><CFormCheck id="flexCheckDefault" disabled /></CTableDataCell>
-                                    <CTableDataCell><CFormCheck id="flexCheckDefault" disabled /></CTableDataCell>
 
-                                </CTableRow>
-                            </CTableBody>
-                        </CTable>
+                            </CRow>
 
-                        {/* 
-                        <CRow className="mb-3" >
-                            <CFormLabel htmlFor="Admin" className="col-sm-2 col-form-label">User</CFormLabel>
-                            <CCol md={2}>
-                                <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Capabilities</CButton>
-                            </CCol>
+                        </CCollapse>
 
-                        </CRow>
-                        <CRow className="mb-3" >
-                            <CFormLabel htmlFor="Admin" className="col-sm-2 col-form-label">Moderator</CFormLabel>
-                            <CCol md={2}>
-                                <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Capabilities</CButton>
-                            </CCol>
+                    </CRow>
+                </> : null}
 
-                        </CRow>
-                        <CRow className="mb-3" >
-                            <CFormLabel htmlFor="Admin" className="col-sm-2 col-form-label">Manager</CFormLabel>
-                            <CCol md={2}>
-                                <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Capabilities</CButton>
-                            </CCol>
+                <>
+                    <CRow >
+                        <CCol md={11}>
+                            <span className='fs-5'>Navigation & Actions</span>
+                        </CCol>
+                        <CCol>
+                            <span className="material-symbols-outlined" style={{ cursor: 'pointer' }} onClick={() => setRawCollapseVisible(!rawCollapseVisible)}>
+                                expand_more
+                            </span>
+                        </CCol>
+                        <hr />
+                    </CRow>
+                    <CRow className='mt-3'>
+                        <CCollapse visible={rawCollapseVisible} style={{ marginLeft: '25%' }}>
+                            <CRow className="mb-3" >
+                                <CFormLabel htmlFor="sPin" className="col-sm-2 col-form-label">Navigation</CFormLabel>
+                                <CCol md={1}>
+                                    <CFormSwitch checked={navigationPin} onChange={(e) => handlePins('navigation', e.target.checked)} style={{ width: "40px" }} size="lg" />
+                                </CCol>
 
-                        </CRow>
-                        <CRow className="mb-3" >
-                            <CFormLabel htmlFor="Admin" className="col-sm-2 col-form-label">Admin</CFormLabel>
-                            <CCol md={2}>
-                                <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Capabilities</CButton>
-                            </CCol>
 
-                        </CRow> 
-                    </CCollapse>
+                            </CRow>
+                            <CRow className="mb-3" >
+                                <CFormLabel htmlFor="production" className="col-sm-2 col-form-label">Actions</CFormLabel>
+                                <CCol md={1}>
+                                    <CFormSwitch checked={actionsPin} onChange={(e) => handlePins('actions', e.target.checked)} style={{ width: "40px" }} size="lg" />
+                                </CCol>
 
-                </CRow> */}
-                <CRow >
-                    <CCol md={11}>
-                        <span className='fs-5'>Pins</span>
-                    </CCol>
-                    <CCol>
-                        <span className="material-symbols-outlined" style={{ cursor: 'pointer' }} onClick={() => setRawCollapseVisible(!rawCollapseVisible)}>
-                            expand_more
-                        </span>
-                    </CCol>
-                    <hr />
-                </CRow>
-                <CRow className='mt-3'>
-                    <CCollapse visible={rawCollapseVisible} style={{ marginLeft: '25%' }}>
-                        <CRow className="mb-3" >
-                            <CFormLabel htmlFor="sPin" className="col-sm-2 col-form-label">Super Pin</CFormLabel>
-                            <CCol md={1}>
-                            <CFormInput id="name" type='text' placeholder='Enter Pin'/>
-                            </CCol>
-                            <CCol md={2}>
-                                <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Pin</CButton>
-                            </CCol>
-                            {/* <CCol>
-                                <CTooltip content={
-                                    <div style={{ textAlign: 'start' }}>
-                                        <p>View/Modify any entry in</p>
-                                        <ul>
-                                            <li>Production</li>
-                                            <li>Inventory   </li>
-                                            <li>Sales</li>
-                                        </ul>
-                                    </div>
-                                }>
-                                    <span className="material-symbols-sharp" style={{ cursor: 'pointer' }}>
-                                        info
-                                    </span>
-                                </CTooltip>
-                            </CCol> */}
-                        </CRow>
-                        <CRow className="mb-3" >
-                            <CFormLabel htmlFor="production" className="col-sm-2 col-form-label">Production</CFormLabel>
-                            <CCol md={1}> <CFormInput id="name" type='text' placeholder='Enter Pin'/>
-                            </CCol>
-                            <CCol md={2}>
-                                <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Pin</CButton>
-                            </CCol>
-                            {/* <CCol>
-                                <CTooltip content={
-                                    <div style={{ textAlign: 'start' }}>
-                                        <span>Add plywood production to the system</span>
-                                    </div>
-                                }>
-                                    <span className="material-symbols-sharp" style={{ cursor: 'pointer' }}>
-                                        info
-                                    </span>
-                                </CTooltip>
-                            </CCol> */}
-                        </CRow>
-                        <CRow className="mb-3" >
-                            <CFormLabel htmlFor="Inventory" className="col-sm-2 col-form-label">Inventory</CFormLabel>
-                            <CCol md={1}>
-                            <CFormInput id="name" type='text' placeholder='Enter Pin'/>
-                            </CCol>
-                            <CCol md={2}>
-                                <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Pin</CButton>
-                            </CCol>
-                            {/* <CCol>
-                                <CTooltip content={
-                                    <div style={{ textAlign: 'start' }}>
-                                        <p>View/Update following inventories</p>
-                                        <ul>
-                                            <li>Plywood</li>
-                                            <li>Raw Materials   </li>
-                                            <li>Other</li>
-                                        </ul>
-                                    </div>
-                                }>
-                                    <span className="material-symbols-sharp" style={{ cursor: 'pointer' }}>
-                                        info
-                                    </span>
-                                </CTooltip>
-                            </CCol> */}
 
-                        </CRow>
-                        <CRow className="mb-3" >
-                            <CFormLabel htmlFor="Sales" className="col-sm-2 col-form-label">Sales</CFormLabel>
-                            <CCol md={1}>
-                            <CFormInput id="name" type='text' placeholder='Enter Pin'/>
-                            </CCol>
-                            <CCol md={2}>
-                                <CButton onClick={() => setVisible(true)} color='light' variant="outline" style={{ color: 'black', borderColor: 'black' }}>Modify Pin</CButton>
-                            </CCol>
-                            {/* <CCol>
-                                <CTooltip content={
-                                    <div style={{ textAlign: 'start' }}>
-                                        <p>View/Create following sales entries</p>
-                                        <ul>
-                                            <li>Sales Orders</li>
-                                            <li>Invoices</li>
-                                            <li>Shipments</li>
-                                            <li>Credit Memos</li>
-                                        </ul>
-                                    </div>
-                                }>
-                                    <span className="material-symbols-sharp" style={{ cursor: 'pointer' }}>
-                                        info
-                                    </span>
-                                </CTooltip>
-                            </CCol> */}
+                            </CRow>
 
-                        </CRow>
-                    </CCollapse>
 
-                </CRow>
+                        </CCollapse>
+
+                    </CRow>
+                </>
 
                 <CRow >
                     <CCol md={11}>
@@ -379,7 +296,7 @@ const Permissions = () => {
                                 <CTableRow >
                                     <CTableDataCell scope="col" className='p-3'>{PAGES.Production}</CTableDataCell>
                                     <CTableHeaderCell scope="row" className='p-3'>
-                                        <CFormInput id="name" type='text' placeholder='Enter Pin' onChange={(e) => handlePin(e.target.value, PAGES.Production)}/>
+                                        <CFormInput id="name" type='text' placeholder='Enter Pin' onChange={(e) => handlePin(e.target.value, PAGES.Production)} />
                                     </CTableHeaderCell>
                                     <CTableDataCell className='p-3'>
                                         <Select
@@ -447,7 +364,7 @@ const Permissions = () => {
                                 <CTableRow className='mt-3'>
                                     <CTableDataCell scope="col" className='p-3'>PlyWood</CTableDataCell>
                                     <CTableHeaderCell scope="row" className='p-3'>
-                                        <CFormInput id="name" type='text' placeholder='Enter Pin' onChange={(e) => handlePin(e.target.value, PAGES.PLYWOOD)}/>
+                                        <CFormInput id="name" type='text' placeholder='Enter Pin' onChange={(e) => handlePin(e.target.value, PAGES.PLYWOOD)} />
                                     </CTableHeaderCell>
                                     <CTableDataCell className='p-3'>
                                         <Select
@@ -463,7 +380,7 @@ const Permissions = () => {
                                         ></Select></CTableDataCell>
 
                                     <CTableDataCell scope="col" className='p-3'>
-                                    <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.PLYWOOD))}>Update</CButton>
+                                        <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.PLYWOOD))}>Update</CButton>
                                     </CTableDataCell>
                                 </CTableRow>
                                 <CTableRow >
@@ -516,7 +433,7 @@ const Permissions = () => {
                                 <CTableRow >
                                     <CTableDataCell scope="col" className='p-3'>Raw Materials</CTableDataCell>
                                     <CTableHeaderCell scope="row" className='p-3'>
-                                        <CFormInput id="name" type='text' placeholder='Enter Pin' onChange={(e) => handlePin(e.target.value, PAGES.RAW_MATERIAL)}/>
+                                        <CFormInput id="name" type='text' placeholder='Enter Pin' onChange={(e) => handlePin(e.target.value, PAGES.RAW_MATERIAL)} />
                                     </CTableHeaderCell>
                                     <CTableDataCell className='p-3'>
                                         <Select
@@ -532,7 +449,7 @@ const Permissions = () => {
                                         ></Select></CTableDataCell>
 
                                     <CTableDataCell scope="col" className='p-3'>
-                                    <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.RAW_MATERIAL))}>Update</CButton>
+                                        <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.RAW_MATERIAL))}>Update</CButton>
                                     </CTableDataCell>
                                 </CTableRow>
                                 <CTableRow >
@@ -601,7 +518,7 @@ const Permissions = () => {
                                         ></Select></CTableDataCell>
 
                                     <CTableDataCell scope="col" className='p-3'>
-                                    <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.SALES_ORDER))}>Update</CButton>
+                                        <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.SALES_ORDER))}>Update</CButton>
                                     </CTableDataCell>
                                 </CTableRow>
                                 <CTableRow >
@@ -672,7 +589,7 @@ const Permissions = () => {
                                         ></Select></CTableDataCell>
 
                                     <CTableDataCell scope="col" className='p-3'>
-                                    <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.CUSTOMER))}>Update</CButton>
+                                        <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.CUSTOMER))}>Update</CButton>
                                     </CTableDataCell>
                                 </CTableRow>
                                 <CTableRow >
@@ -725,7 +642,7 @@ const Permissions = () => {
                                 <CTableRow >
                                     <CTableDataCell scope="col" className='p-3'>Activity Logs</CTableDataCell>
                                     <CTableHeaderCell scope="row" className='p-3'>
-                                        <CFormInput id="name" type='text' placeholder='Enter Pin' onChange={(e) => handlePin(e.target.value, PAGES.ACTIVITY_LOGS)}/>
+                                        <CFormInput id="name" type='text' placeholder='Enter Pin' onChange={(e) => handlePin(e.target.value, PAGES.ACTIVITY_LOGS)} />
                                     </CTableHeaderCell>
                                     <CTableDataCell className='p-3'>
                                         <Select
@@ -742,7 +659,7 @@ const Permissions = () => {
                                         ></Select></CTableDataCell>
 
                                     <CTableDataCell scope="col" className='p-3'>
-                                    <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.ACTIVITY_LOGS))}>Update</CButton>
+                                        <CButton className='blue-button' variant='outline' onClick={() => updateSection(pageAccessList.find(o => o.page_name === PAGES.ACTIVITY_LOGS))}>Update</CButton>
                                     </CTableDataCell>
                                 </CTableRow>
                                 <CTableRow >

@@ -175,7 +175,7 @@ const Inventory = () => {
 
 
   const deleteRawMaterial = () => {
-    RawMaterialService.deleteRawMaterialRecord("dash_page", [Number(deleteItem.id)])
+    RawMaterialService.deleteRawMaterialRecord("dash_page", [Number(deleteItem?.id)])
       .then(response => {
         swal("Success!", "Raw Material Deleted Successfully", "success");
         setRefreshPage(!refreshPage)

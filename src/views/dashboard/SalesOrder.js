@@ -26,7 +26,7 @@ const SalesOrder = () => {
     const [visiblePinModel, setVisiblePinModel] = useState(true)
 
     const [startDate, setStartDate] = useState(new Date().setMonth(new Date().getMonth() - 4))
-    const [endDate, setEndDate] = useState(new Date())
+    const [endDate, setEndDate] = useState(new Date().setMonth(new Date().getMonth() + 4))
     const [selectedOrderStatus, setSelectedOrderStatus] = useState(-1)
     const [salesOrderList, setSalesOrderList] = useState([]);
 
@@ -208,6 +208,7 @@ const SalesOrder = () => {
             <NoData Titles={titlesObject} />
         </>
     );
+    
 
     const navigate = useNavigate();
 
@@ -336,6 +337,7 @@ const SalesOrder = () => {
                             <CTableRow color="info">
                                 <CTableHeaderCell scope="col" className='text-center' width={5}><CFormCheck id="flexCheckDefault" /></CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Order #</CTableHeaderCell>
+                                <CTableHeaderCell scope="col" className='text-center'>Reference #</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Date</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Customer Name</CTableHeaderCell>
                                 <CTableHeaderCell scope="col" className='text-center'>Order Status</CTableHeaderCell>
@@ -348,6 +350,7 @@ const SalesOrder = () => {
                                 <CTableRow key={index}>
                                     <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
                                     <CTableHeaderCell scope="row" className='text-center' style={{ color: "blue", fontWeight: "800" }}>#SO{item.sop}</CTableHeaderCell>
+                                    <CTableHeaderCell scope="row" className='text-center' style={{ fontWeight: "800" }}>#123</CTableHeaderCell>
                                     <CTableDataCell className='text-center'>{moment(item.order_date).format("YYYY-MM-DD")} </CTableDataCell>
                                     <CTableDataCell className='text-center'>{getCustomerName(item?.customerId)}</CTableDataCell>
                                     <CTableDataCell className='text-center'>{item.order_status == 0 ? "PENDING" : item.order_status == 1 ? "INVOICED" : "CANCELED"}</CTableDataCell>
@@ -356,6 +359,9 @@ const SalesOrder = () => {
                                         <span className="material-symbols-outlined" style={{ cursor: "pointer" }}
                                             onClick={() => navigate(`/sales/view?id=${item.id}&sop=SO${item.sop}`)}>
                                             visibility
+                                        </span>
+                                        <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => navigate(`/sales/new?id=${item.id}&sop=${item.sop}`)}>
+                                            edit
                                         </span>
                                         <span className="material-symbols-outlined" style={{ cursor: "pointer" }} onClick={() => setDeleteVisible(true)}>
                                             delete

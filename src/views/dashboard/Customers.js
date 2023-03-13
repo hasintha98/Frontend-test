@@ -170,7 +170,7 @@ const Customers = () => {
     };
 
     const deleteCustomer = () => {
-        CustomersServices.deleteCustomerRecord("dash_page", [Number(deleteItem.id)])
+        CustomersServices.deleteCustomerRecord("dash_page", [Number(deleteItem?.id)])
             .then(response => {
                 ActivityLogsService.createLog(PAGES.CUSTOMER, AuthService.getCurrentUser().name, ACTIONS.DELETE, 1)
                 .catch((error) => {

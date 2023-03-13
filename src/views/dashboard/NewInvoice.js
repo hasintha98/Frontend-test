@@ -22,6 +22,7 @@ const NewInvoice = () => {
     const [validationMsg, setValidationMsg] = useState("")
     const [notes, setNotes] = useState("")
     const [itemStocks, setItemStocks] = useState([])
+    const [ref_no, setRef_no] = useState("")
 
     const [invoiceDate, setInvoiceDate] = useState(new Date().toLocaleDateString('en-CA'))
     useEffect(() => {
@@ -56,11 +57,15 @@ const NewInvoice = () => {
             return
         }
 
-        // if (qty < invoicedQTY) {
-        //     setValidationAlert(true)
-        //     setValidationMsg(`Qty must be higher than ${invoicedQTY}`)
-        //     return
-        // }
+        if (orderQTY <= invoicedQTY) {
+
+            if(qty != 0) {
+                setValidationAlert(true)
+                setValidationMsg(`Items already invoiced`)
+                return
+            }
+          
+        }
 
         if (qty > stock) {
             setValidationAlert(true)
@@ -73,12 +78,14 @@ const NewInvoice = () => {
             if (item.id === id) {
                 item.sub_rates = qty * parseFloat(item.rates)
                 item.total = parseFloat(item.sub_rates) - (parseFloat(item.sub_rates) * parseFloat(item.discounts)) / 100 + (parseFloat(item.sub_rates) * parseFloat(item.taxes)) / 100
+                item.item_details = itemDetails
+                item.order_item_id = id
+                item.qty_to_invoice = Number(qty)
             }
             subTotal = parseFloat(subTotal) + parseFloat(item.total)
             item.new_rates = 0
-            item.order_item_id = id
-            item.qty_to_invoice = Number(qty)
-            item.item_details = itemDetails
+   
+           
             return item
         })
 
@@ -103,11 +110,17 @@ const NewInvoice = () => {
             return
         }
 
+        if (!ref_no) {
+            return
+        }
+
         if (validationAlert) {
             return
         }
 
-        InvoiceServices.createNewInvoice("dash_page", Number(orderId), invoiceDate, notes, subAmount, salesOrder?.order_delivery_chargers, totalAmount, itemList)
+    
+
+        InvoiceServices.createNewInvoice("dash_page", Number(orderId), invoiceDate, notes, subAmount, salesOrder?.order_delivery_chargers, totalAmount, Number(ref_no), itemList)
             .then(response => {
                 swal("Success!", "Invoice Created Successfully", "success").then((value) => {
                     navigate(`/sales/view?id=${orderId}`)
@@ -177,6 +190,16 @@ const NewInvoice = () => {
                     </CCol>
                     <CCol md={2}>
                         <CFormInput type="date" defaultValue={new Date().toLocaleDateString('en-CA')} onChange={(e) => setInvoiceDate(e.target.value)} />
+                    </CCol>
+
+
+                </CRow>
+                <CRow className='d-flex justify-content-end mt-2'>
+                    <CCol md={1}>
+                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Reference # </span></span>
+                    </CCol>
+                    <CCol md={2}>
+                        <CFormInput type="number"  onChange={(e) => setRef_no(e.target.value)} />
                     </CCol>
 
 

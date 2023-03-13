@@ -8,7 +8,7 @@ const ApiRequestInterval =  1000 * 30 * 1; // 30 seconds
 const Backend_Url = "https://riviruapi4.escarta.lk/api"
 //const Backend_Url = "http://localhost:5000/api";  ///"http://localhost:5000/api",
 
-//const Backend_Url = "http://localhost:5000/api"; 
+// const Backend_Url = "http://localhost:5000/api"; 
 
 
 const Backend_Url_Proxy = "https://riviruapi4.escarta.lk/";  

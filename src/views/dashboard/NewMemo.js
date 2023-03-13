@@ -26,7 +26,7 @@ const NewMemo = () => {
     const [notes, setNotes] = useState("")
     const [memoDate, setMemoDate] = useState(new Date().toLocaleDateString('en-CA'))
     const [refundAdjustment, setRefundAdjustment] = useState(0)
-
+    const [ref_no, setRef_no] = useState("")
     const [totalAmount, setTotalAmount] = useState(0)
 
     const [subAmount, setSubAmount] = useState(0)
@@ -110,12 +110,17 @@ const NewMemo = () => {
             return
         }
 
+        
+        if(!ref_no) {
+            return
+        }
+
         if(validationAlert) {
             return
         }
         setLoading(true)
         setLoadingMsg("Creating Credit Memo...")
-        await CreditMemoServices.createNewCreditMemo("dash_page", Number(orderId), memoDate, 0, notes, parseFloat(subAmount), parseFloat(refundAdjustment), parseFloat(totalAmount), itemList)
+        await CreditMemoServices.createNewCreditMemo("dash_page", Number(orderId), memoDate, 0, notes, parseFloat(subAmount), parseFloat(refundAdjustment), parseFloat(totalAmount), Number(ref_no), itemList)
             .then(response => {
                 setLoading(false)
                 setLoadingMsg(null)
@@ -189,6 +194,16 @@ const NewMemo = () => {
                     </CCol>
                     <CCol md={2}>
                         <CFormInput type="date" defaultValue={new Date().toLocaleDateString('en-CA')} onChange={(e) => setMemoDate(e.target.value)} />
+                    </CCol>
+
+
+                </CRow>
+                <CRow className='d-flex justify-content-end mt-2'>
+                    <CCol md={1}>
+                        <span style={{ textAlign: 'end' }}><span style={{ fontWeight: 'bold' }}>Reference # </span></span>
+                    </CCol>
+                    <CCol md={2}>
+                        <CFormInput type="number"  onChange={(e) => setRef_no(e.target.value)} />
                     </CCol>
 
 
