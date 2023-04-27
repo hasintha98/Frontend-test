@@ -1,7 +1,7 @@
 import { CButton, CCol, CCollapse, CFormCheck, CFormInput, CFormLabel, CFormSwitch, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow, CTooltip } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import 'react-tooltip/dist/react-tooltip.css'
-import { Tooltip as ReactTooltip } from 'react-tooltip'
+
 import PinResetModel from 'src/components/Models/PinResetModel'
 import { useNavigate } from 'react-router-dom'
 import Select from 'react-select'

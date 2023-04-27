@@ -178,6 +178,8 @@ const AddEditCustomerModel = ({ visible, onClose, isEdit, values, refreshPage })
                     onClose={(val) => setPinVisibleModel(val)} 
                     page={PAGES.CUSTOMER}
                     action={isEdit ? "edit": "create"}
+                    height='420px'
+                    padding='15%'
                     />
             </CModalBody>
         </CModal>

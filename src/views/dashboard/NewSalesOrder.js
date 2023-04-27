@@ -53,7 +53,7 @@ const NewSalesOrder = () => {
     }, [])
 
     const getCustomerList = () => {
-        CustomersServices.getAllCustomersInfo("dash_page", 0, 10, "")
+        CustomersServices.getAllCustomersInfo("dash_page", 0, 999, "")
             .then(response => {
                 const { customersList, totalPages } = response.data;
 

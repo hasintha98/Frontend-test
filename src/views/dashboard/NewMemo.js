@@ -44,7 +44,7 @@ const NewMemo = () => {
                     ...obj,
                     item_details: `${obj.type} - ${obj.size}mm`,
                     order_item_id: obj.id,
-                    qty_returned_restock: false,
+                    qty_returned_restock: 0,
                     sub_rates: 0,
                     total: 0
 
@@ -112,6 +112,7 @@ const NewMemo = () => {
 
         
         if(!ref_no) {
+            swal("Error", "Please Enter a reference number", "error")
             return
         }
 

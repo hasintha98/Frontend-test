@@ -30,14 +30,16 @@ const NavBar = () => {
                     LOGIN
                 </CButton>
             </CContainer>
-            <LoginModel visible={loginVisible} 
-            onClose={(val) => setLoginVisible(val)} 
-            isLoading={(val) => setLoading(val)} 
-            loadingMsg={(val) => setLoadingMsg(val)} />
-            <LoadingModel 
-            visible={loading} 
-            loadingMsg={loadingMsg} 
-            onClose={(val) => setLoading(val)} 
+            <LoginModel visible={loginVisible}
+                onClose={(val) => setLoginVisible(val)}
+                isLoading={(val) => setLoading(val)}
+                loadingMsg={(val) => setLoadingMsg(val)} />
+            <LoadingModel
+                visible={loading}
+                loadingMsg={loadingMsg}
+                onClose={(val) => setLoading(val)}
+                padding={"13%"}
+                height={"330px" }
             />
         </CNavbar>
     )

@@ -1,10 +1,10 @@
 import { CModal, CModalBody } from '@coreui/react'
 import React from 'react'
 
-const LoadingModel = ({ visible, onClose, loadingMsg }) => {
+const LoadingModel = ({ visible, onClose, loadingMsg, height = "auto", padding = "5%" }) => {
     return (
         <CModal
-            style={{ marginTop: "30%", padding: "5%" }}
+            style={{ marginTop: "30%", padding: padding , height: height}}
             visible={visible}
             onClose={() => onClose(false)}>
             <CModalBody

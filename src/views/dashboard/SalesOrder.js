@@ -7,7 +7,7 @@ import RecordDeleteModel from 'src/components/Models/RecordDeleteModel'
 import { predefinedRanges } from 'src/data/preDefinedDateRanges'
 import 'rsuite/styles/index.less'; // or 'rsuite/dist/rsuite.min.css'
 import "rsuite/dist/rsuite.min.css"
-import SendEmailModel from 'src/components/Models/SendEmailModel'
+
 import PinRequiredModel from 'src/components/Models/PinRequiredModel'
 import SalesOrderServices from 'src/services/SalesOrderServices'
 import moment from 'moment'
@@ -16,6 +16,8 @@ import LoadingModel from 'src/components/Models/LoadingModel'
 import swal from 'sweetalert'
 import NoData from 'src/extra/NoData/NoData'
 import { PAGES } from 'src/hooks/constants'
+import { Tooltip as ReactTooltip } from 'react-tooltip'
+import 'react-tooltip/dist/react-tooltip.css'
 
 const SalesOrder = () => {
     const [loading, setLoading] = useState(false)
@@ -29,6 +31,8 @@ const SalesOrder = () => {
     const [endDate, setEndDate] = useState(new Date().setMonth(new Date().getMonth() + 4))
     const [selectedOrderStatus, setSelectedOrderStatus] = useState(-1)
     const [salesOrderList, setSalesOrderList] = useState([]);
+
+ 
 
     const salesOrderListRef = useRef();
 
@@ -115,7 +119,7 @@ const SalesOrder = () => {
     };
 
     const getCustomerDetails = () => {
-        CustomersServices.getAllCustomersInfo("dash_page", 0, 10, "")
+        CustomersServices.getAllCustomersInfo("dash_page", 0, 999, "")
             .then(response => {
 
                 // const customer = response.data.customersList.find(obj => obj.id === Number(item.Orders_Data_TB.customerId));
@@ -126,7 +130,7 @@ const SalesOrder = () => {
 
     const getCustomerName = (id) => {
         const customer = customers.find(obj => obj.id === Number(id));
-        return customer.name
+        return customer?.name
     }
 
     const retrievePlyWoodProductionList = async () => {
@@ -208,7 +212,7 @@ const SalesOrder = () => {
             <NoData Titles={titlesObject} />
         </>
     );
-    
+
 
     const navigate = useNavigate();
 
@@ -224,7 +228,24 @@ const SalesOrder = () => {
                 </CCol>
                 <CCol className='d-flex justify-content-end gap-4'>
                     <CCol md={5}>
+
                         <CInputGroup >
+                            <ReactTooltip
+                                anchorId="info-helper-sales"
+                                place="bottom"
+                                content={
+                                    <>
+                                        <p>You can search here by :</p>
+                                        <ul>
+                                            <li>Reference Number</li>
+                                            <li>Sales Order Number</li>
+                                            <li>Customer Name</li>
+                                        </ul>
+                                    </>
+                                } />
+                            <span id="info-helper-sales" className="material-symbols-outlined" style={{ padding: 5 }}>
+                                info
+                            </span>
                             <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Customer name / Order no' onChange={onChangeSearchTitle_Type} />
                             <CInputGroupText className='default-border' style={{ cursor: 'pointer' }}>
                                 <span className="material-symbols-outlined" onClick={findByTitle}>
@@ -350,7 +371,7 @@ const SalesOrder = () => {
                                 <CTableRow key={index}>
                                     <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
                                     <CTableHeaderCell scope="row" className='text-center' style={{ color: "blue", fontWeight: "800" }}>#SO{item.sop}</CTableHeaderCell>
-                                    <CTableHeaderCell scope="row" className='text-center' style={{ fontWeight: "800" }}>#123</CTableHeaderCell>
+                                    <CTableHeaderCell scope="row" className='text-center' style={{ fontWeight: "800" }}>#{item?.ref_no}</CTableHeaderCell>
                                     <CTableDataCell className='text-center'>{moment(item.order_date).format("YYYY-MM-DD")} </CTableDataCell>
                                     <CTableDataCell className='text-center'>{getCustomerName(item?.customerId)}</CTableDataCell>
                                     <CTableDataCell className='text-center'>{item.order_status == 0 ? "PENDING" : item.order_status == 1 ? "INVOICED" : "CANCELED"}</CTableDataCell>

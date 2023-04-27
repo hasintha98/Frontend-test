@@ -38,43 +38,43 @@ const StockUpdateModel = ({ visible, onClose, product, isAdding, refreshPage, ty
                 .then(response => {
                     swal("Success!", "Stock Updated Successfully", "success");
                     ActivityLogsService.createLog(PAGES.RAW_MATERIAL, AuthService.getCurrentUser().name, ACTIONS.UPDATE, 1)
-                    .catch((error) => {
-                        console.log(error)
-                        swal("Error!", "Something Went Wrong With Logging", "error");
-                    })
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
                     setValidationAlert(false)
                     onClose(false)
                     refreshPage()
-                    
+
                 }).catch(error => {
                     console.log(error.response.data.message)
                     setValidationAlert(false)
                     swal("Error!", error.response.data.message, "error");
                     ActivityLogsService.createLog(PAGES.RAW_MATERIAL, AuthService.getCurrentUser().name, ACTIONS.UPDATE, 0)
-                    .catch((error) => {
-                        console.log(error)
-                        swal("Error!", "Something Went Wrong With Logging", "error");
-                    })
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
                 })
         } else {
             PlyWoodTypesServices.addStockPlyWoodTypeRecord("dash_page", Number(product.id), Number(qty))
                 .then(response => {
                     swal("Success!", "Stock Updated Successfully", "success");
                     ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.UPDATE, 1)
-                    .catch((error) => {
-                        console.log(error)
-                        swal("Error!", "Something Went Wrong With Logging", "error");
-                    })
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
                     onClose(false)
                     refreshPage()
                 }).catch(error => {
                     console.log(error.response.data.message)
                     swal("Error!", error.response.data.message, "error");
                     ActivityLogsService.createLog(PAGES.PLYWOOD, AuthService.getCurrentUser().name, ACTIONS.UPDATE, 0)
-                    .catch((error) => {
-                        console.log(error)
-                        swal("Error!", "Something Went Wrong With Logging", "error");
-                    })
+                        .catch((error) => {
+                            console.log(error)
+                            swal("Error!", "Something Went Wrong With Logging", "error");
+                        })
                 })
         }
 
@@ -131,12 +131,14 @@ const StockUpdateModel = ({ visible, onClose, product, isAdding, refreshPage, ty
                 <div
                     className='d-grid gap-5 d-md-flex justify-content-md-around mt-5'>
                     <CButton
+                        disabled={pinVisibleModel}
                         color="success"
                         style={{ color: '#fff', width: "100%" }}
                         onClick={() => setPinVisibleModel(true)}>
                         Update
                     </CButton>
                     <CButton
+                        disabled={pinVisibleModel}
                         color="danger"
                         style={{ backgroundColor: '#FF5B5B', color: '#fff', width: "100%" }}
                         onClick={() => onClose(false)}>
@@ -149,7 +151,9 @@ const StockUpdateModel = ({ visible, onClose, product, isAdding, refreshPage, ty
                     pinStatus={(status) => status ? stockUpdate() : setPinVisibleModel(false)}
                     onClose={(val) => setPinVisibleModel(val)}
                     action="update"
-                    />
+                    height={type == 'raw' ? '420px':'370px'}
+                    padding='14%'
+                />
             </CModalBody>
 
         </CModal>

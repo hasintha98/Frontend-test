@@ -8,7 +8,7 @@ import PermissionsService from 'src/services/PermissionsService'
 import UserService from 'src/services/UserService'
 import LoadingModel from './LoadingModel'
 
-const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigate = false, page, action }) => {
+const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigate = false, page, action, padding = "5%", height = "auto" }) => {
     const [loading, setLoading] = useState(false)
     const [pin, setPin] = useState("")
     const [icon, setIcon] = useState(
@@ -175,7 +175,7 @@ const PinRequiredModel = ({ visible, onClose, pinStatus, isNavigation, isNavigat
 
     return  (
         <CModal
-            style={{ marginTop: "30%", padding: "5%" }}
+            style={{ marginTop: "30%", padding: padding, height: height }}
             visible={visible}
             backdrop="static"
             onClose={() => onClose(false)}>

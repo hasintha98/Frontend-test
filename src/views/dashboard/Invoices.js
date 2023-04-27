@@ -16,6 +16,8 @@ import NoData from 'src/extra/NoData/NoData'
 import { PAGES } from 'src/hooks/constants'
 import PinRequiredModel from 'src/components/Models/PinRequiredModel'
 import CustomersServices from 'src/services/CustomersServices'
+import { Tooltip as ReactTooltip } from 'react-tooltip'
+import 'react-tooltip/dist/react-tooltip.css'
 
 const Invoices = () => {
     const [visible, setVisible] = useState(false)
@@ -53,7 +55,7 @@ const Invoices = () => {
     }, [page, pageSize, updateOnRefReshPage, orderId])
 
     const getCustomerDetails = () => {
-        CustomersServices.getAllCustomersInfo("dash_page", 0, 10, "")
+        CustomersServices.getAllCustomersInfo("dash_page", 0, 999, "")
             .then(response => {
 
                 // const customer = response.data.customersList.find(obj => obj.id === Number(item.Orders_Data_TB.customerId));
@@ -208,6 +210,21 @@ const Invoices = () => {
                     <CCol></CCol>
                     <CCol md={5}>
                         <CInputGroup >
+                        <ReactTooltip
+                                anchorId="info-helper-sales"
+                                place="bottom"
+                                content={
+                                    <>
+                                        <p>You can search here by :</p>
+                                        <ul>
+                                            <li>Reference Number</li>
+                                            <li>Sales Order Number</li>
+                                        </ul>
+                                    </>
+                                } />
+                            <span id="info-helper-sales" className="material-symbols-outlined" style={{ padding: 5 }}>
+                                info
+                            </span>
                             <CFormInput className='default-border' aria-label="Amount (to the nearest dollar)" placeholder='Search by Order No' value={searchTitle_Type} onChange={onChangeSearchTitle_Type} />
                             <CInputGroupText className='default-border'><span className="material-symbols-outlined" onClick={findByTitle}>
                                 search
@@ -311,7 +328,7 @@ const Invoices = () => {
                                 <CTableRow key={index}>
                                     <CTableDataCell className='text-center'><CFormCheck id="flexCheckDefault" /></CTableDataCell>
                                     <CTableHeaderCell scope="row" className='text-center' style={{ color: "blue", fontWeight: "800" }}>#IN{item.ip}</CTableHeaderCell>
-                                    <CTableHeaderCell scope="row" className='text-center' style={{ fontWeight: "800" }}>#123</CTableHeaderCell>
+                                    <CTableHeaderCell scope="row" className='text-center' style={{ fontWeight: "800" }}>#{item?.ref_no}</CTableHeaderCell>
                                     <CTableDataCell className='text-center'>{moment(item.invoiced_date).format("YYYY-MM-DD")}</CTableDataCell>
                                     <CTableDataCell className='text-center'>#SO{item.Orders_Data_TB.sop}</CTableDataCell>
                                     <CTableDataCell className='text-center'>{moment(item.Orders_Data_TB.order_date).format("YYYY-MM-DD")}</CTableDataCell>
